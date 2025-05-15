@@ -1,9 +1,9 @@
 # Simulated Annealing for QUBOs
 
-This repo contains a simulated annealing algorithm to solve QUBOs written. See
+This repo contains a simulated annealing algorithm to solve QUBOs. See
 `python/build/solver.py` for our implementation in Python. See
 `python/unit_test.py` for unit tests to check your Python build. Finally, see
-`python/run.py` for an example of how to run the solver for a toy example.
+`python/run.py` for an example of how to run the solver with a toy example.
 
 ### Requirements:
 
@@ -28,4 +28,3 @@ beta_sched (1 x n matrix): 1/temperate schedule for each iteration.
 
 Given the input arguments defined above, the solver outputs the
 solution with the minimum found energy.
-
