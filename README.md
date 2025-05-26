@@ -40,9 +40,9 @@ a set of $n$ cities, let $x_{i,j}$ be equal to 1 if city $i$ is
 the $j$th city visited in the tour and 0 otherwise. Any feasible tour
 must satisfy the following two constraints:
 
-1. $\displaystyle\sum_{i=0}^{n-1} \Big(1 - \sum_{j=0}^{n-1} x_{i,j}\Big)^2 = 0$
+1. $\sum_{i=0}^{n-1} (1 - \sum_{j=0}^{n-1} x_{i,j})^2 = 0$
    (each city is visited exactly once) and
-2. $\displaystyle\sum_{j=0}^{n-1} \Big(1 - \sum_{i=0}^{n-1} x_{i,j}\Big)^2 = 0$
+2. $\sum_{j=0}^{n-1} (1 - \sum_{i=0}^{n-1} x_{i,j})^2 = 0$
    (one city is visited per tour step).
 
 Given two cities $u$ and $v$, let $D(u, v)$ denote the distance between
