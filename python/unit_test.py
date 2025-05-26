@@ -1,4 +1,4 @@
-from build import solver as s
+from build import qubo_solver as s
 import numpy as np
 
 

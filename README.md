@@ -5,9 +5,9 @@ This repo contains a simulated annealing algorithm to solve QUBOs.
 
 ## Python Code
 
-See `python/build/solver.py` for our implementation in Python. See
+See `python/build/qubo_solver.py` for our implementation in Python. See
 `python/unit_test.py` for unit tests to check your Python build. Finally, see
-`python/run.py` for an example of how to run the solver with a toy example.
+`python/examples` for examples of the solver in action.
 
 ### Requirements:
 
@@ -57,7 +57,7 @@ where $j+1$ is taken modulo $n$. To formulate this problem as a QUBO,
 define the following objective function
 
 $$
-P\displaystyle\sum_{i=0}^{n-1} \Big(1 - \sum_{j=0}^{n-1} x_{i,j}\Big)^2 +
+f:= P\displaystyle\sum_{i=0}^{n-1} \Big(1 - \sum_{j=0}^{n-1} x_{i,j}\Big)^2 +
 P\displaystyle\sum_{j=0}^{n-1} \Big(1 - \sum_{i=0}^{n-1} x_{i,j}\Big)^2 +
 \displaystyle\sum_{0 \le u \neq v \le n-1} D(u,v) \sum_{j=0}^{n-1}
 x_{u,j}x_{v,j+1}
@@ -69,15 +69,30 @@ respectively, between cities in a given problem instance. By letting $P =
 n(D_{max} - D_{min})+ 1$, we ensure that any possible tour assignment that does
 not satisfy constraints 1 or 2 has an objective value at least $nD_{max} + 1$.
 
+See `python/examples/tsp.py` for code that takes an instance of a TSP and
+creates the Quadratix matrix $Q$ that represents the quadratic terms in $f$.
+See `python/examples/tsp_example.py` for an example simulated anneal of a
+TSP instance of the following 12 cities.
 
+<p align="center">
+<img src="python/examples/cities.png"
+width="400">
+</p>
 
-## Example: Anionic Clar Number
+With num_res = 1 and num_iters = 10, we obtain the following solution.
+<p align="center">
+<img src="python/examples/0.png" alt="Solve 1"
+width="400">
+</p>
 
+With num_res = 10 and num_iters = 100, we obtain the following solution.
+<p align="center">
+<img src="python/examples/1.png" alt="Solve 2"
+width="400">
+</p>
 
-
-
-
-
-
-
-
+With num_res = 10 and num_iters = 1000, we obtain the following solution.
+<p align="center">
+<img src="python/examples/2.png" alt="Solve 3"
+width="400">
+</p>
