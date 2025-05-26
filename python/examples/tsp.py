@@ -14,7 +14,7 @@ def matrix_index(i: int, j: int, n: int) -> int:
 
 
 # each city should be visited once
-def add_cons_1(Q: NDArray[np.float_], n: int, p: float) -> None:
+def multiple_visit_penalty(Q: NDArray[np.float_], n: int, p: float) -> None:
     for i in range(n):  # for each city
         for j in range(n):  # for each tour step
             index_0 = matrix_index(i, j, n)
@@ -27,7 +27,7 @@ def add_cons_1(Q: NDArray[np.float_], n: int, p: float) -> None:
 
 
 # each tour step should be defined
-def add_cons_2(Q: NDArray[np.float_], n: int, p: float) -> None:
+def multiple_step_penalty(Q: NDArray[np.float_], n: int, p: float) -> None:
     for j in range(n):  # for each tour step
         for i in range(n):  # for each city
             index_0 = matrix_index(i, j, n)
@@ -48,7 +48,7 @@ def distance(
     )
 
 
-def add_dis_weights(
+def distance_penalty(
     Q: NDArray[np.float_],
     n: int,
     x_cor: NDArray[np.float_],
@@ -93,9 +93,11 @@ def main():
 
     Q = np.zeros((n * n, n * n), dtype=float)  # initialize matrix q
 
-    add_cons_1(Q, n, p)  # update matrix values based on constraint 1
-    add_cons_2(Q, n, p)  # update matrix values based on constraint 2
-    add_dis_weights(
+    multiple_visit_penalty(
+        Q, n, p
+    )  # update matrix values based on constraint 1
+    multiple_step_penalty(Q, n, p)  # update matrix values based on constraint 2
+    distance_penalty(
         Q, n, x_cor, y_cor
     )  # update matrix values based on distances
 
