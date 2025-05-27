@@ -1,15 +1,16 @@
 import numpy as np
 from numpy.typing import NDArray
 import math
-import sys
 import networkx as nx
 import matplotlib.pyplot as plt
 
 
 import tsp
 
-sys.path.append("../build/")
-import qubo_solver as qs
+import sys
+
+sys.path.append("../../src/")
+import qubo_dense_solver as qs
 
 
 def draw_graph(
