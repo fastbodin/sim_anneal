@@ -38,12 +38,17 @@ def draw_graph(
     nx.draw_networkx_labels(G, pos=node_pos)
 
     # Draw edges with arrows
-    # nx.draw_networkx_edges(
-    #    G, pos=node_pos, edgelist=edges, edge_color="r", arrows=True, arrowsize=20
-    # )
+    nx.draw_networkx_edges(
+        G,
+        pos=node_pos,
+        edgelist=edges,
+        edge_color="r",
+        arrows=True,
+        arrowsize=20,
+    )
 
     plt.axis("off")
-    # plt.title("Tour Cost: {}".format(cost), fontsize=14)
+    plt.title("Tour Cost: {}".format(cost), fontsize=14)
     plt.tight_layout()
     plt.savefig("tsp_sol.png", dpi=300)
     plt.close()
