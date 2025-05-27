@@ -2,93 +2,110 @@ import numpy as np
 from numpy.typing import NDArray
 
 
-# Compute energy: (x Q x^T) given matrix Q and vector x
-def energy(Q: NDArray[np.float_], x: NDArray[np.bool_]) -> float:
-    return np.matmul(np.matmul(x, Q), np.transpose(x))
+def delta_energy(Q: NDArray[np.float64], x: NDArray[np.bool_], i: int) -> float:
+    """
+    Compute the delta energy: (candidate energy) - (previous energy)
+    if only the ith bit of x changed
+    """
+    return 2 * (2 * x[i] - 1) * np.matmul(Q[i], x) - Q[i][i]
 
 
-# Compute Boltzmann factor given a current state and candidate state
+def energy(Q: NDArray[np.float64], x: NDArray[np.bool_]) -> float:
+    """
+    Compute energy: (x Q x^T) given matrix Q and vector x.
+    """
+    return np.matmul(np.matmul(x, Q), x)
+
+
 def boltzmann_factor(cur_e: float, can_e: float, beta: float) -> float:
+    """
+    Compute Boltzmann factor given a current state energy, candidate state
+    energy, and beta schedule.
+    """
     return np.exp((can_e - cur_e) / (-beta))
 
 
-# Metropolis-Hasting rule for accepting candidate state
-# Return truth value of statement 'candidate state is accepted'
 def accept_sol(cur_e: float, can_e: float, beta: float) -> bool:
-    if can_e <= cur_e:  # if new state has lower energy
+    """
+    Accept or decline candidate state given the current state energy, candidate
+    state energy, and beta schedule by the Metropolis-Hasting rule.
+    """
+    if can_e <= cur_e:
         return True
-
-    # otherwise, accept state with probability equal to Boltzmann factor
+    # accept state with probability equal to Boltzmann factor
     return np.random.random() < boltzmann_factor(cur_e, can_e, beta)
 
 
-# Check inputs to simulated anneal.
 def input_check(
-    Q: NDArray[np.float_],
+    Q: NDArray[np.float64],
     num_res: int,
     num_iters: int,
-    beta_sched: NDArray[np.float_],
+    beta_sched: NDArray[np.float64],
 ) -> None:
-    # Q should be a square 2-dim matrix
-    if (Q.ndim != 2) or (Q.shape[0] != Q.shape[1]):
-        raise ValueError("Q is not square matrix")
+    """
+    Check inputs of simulated anneal.
+    """
+    if Q.ndim != 2:
+        raise ValueError("Q is not matrix")
 
-    # num_res is a positive integer
-    if type(num_res) != int or num_res < 1:
+    if not np.allclose(Q, Q.T):
+        raise ValueError("Q is not symmetric")
+
+    if not isinstance(num_res, int) or num_res < 1:
         raise ValueError("num_res is not positive integer")
 
-    # num_iters is a positive integer
-    if type(num_iters) != int or num_iters < 1:
+    if not isinstance(num_iters, int) or num_iters < 1:
         raise ValueError("num_iters is not positive integer")
 
-    # need a value of beta for each iteration
     if len(beta_sched) != num_iters:
         raise ValueError("beta_sched is incorrect length")
 
 
 def qubo_solve(
-    Q: NDArray[np.float_],
+    Q: NDArray[np.float64],
     num_res: int,
     num_iters: int,
-    beta_sched: NDArray[np.float_],
+    beta_sched: NDArray[np.float64],
 ) -> NDArray[np.bool_]:
     """
     Perform simulated anneal for quadratic unconstrained binary optimization
 
     Args:
-        Q (n x n np.array): quadratic matrix
-        num_res (int): number of restarts in simulation
-        num_iters (int): number of iterations per restart in simulation
-        beta_sched (1 x n np.array): 1/temperature schedule
+        Q: quadratic matrix
+        num_res: number of restarts in simulation
+        num_iters: number of iterations per restart in simulation
+        beta_sched: 1/temperature schedule
 
     Returns:
-        NDArray[np.bool_] (1 x n np.array): minimum energy state found
+        best_sol: minimum energy state found
     """
 
-    input_check(Q, num_res, num_iters, beta_sched)  # sanity check
+    input_check(Q, num_res, num_iters, beta_sched)
 
     n = Q.shape[0]  # each solution comprises n assignments
 
-    best_sol = np.random.random(n) < 0.5  # solution with min energy state
-    min_energy = float("inf")  # initial min energy state
+    # initial solution with min energy state
+    best_sol = np.zeros(n, dtype=bool)
+    min_energy = float("inf")
 
-    for _ in range(num_res):  # given the desired # of resarts
-        x = np.random.random(n) < 0.5  # initial solution is random n-bit array
-        cur_e = energy(Q, x)  # record energy of current state
+    for _ in range(num_res):
+        # starting state and associated energy
+        x = np.random.randint(2, size=n, dtype=bool)
+        cur_e = energy(Q, x)
 
-        for i in range(num_iters):  # for each desired # of iteration
-            beta = beta_sched[i]  # beta is fixed for i
+        for i in range(num_iters):
+            beta = beta_sched[i]
 
-            for j in range(n):  # for each node in solution
+            for j in range(n):
                 x[j] = not x[j]  # flip spin of node
-                can_e = energy(Q, x)  # record candidate energy state
+                can_e = cur_e + delta_energy(Q, x, j)
 
-                if accept_sol(cur_e, can_e, beta):  # accept candidate state
-                    cur_e = can_e  # change reference energy state
-                else:  # reject new state
-                    x[j] = not x[j]  # undo flip to spin of node
+                if accept_sol(cur_e, can_e, beta):
+                    cur_e = can_e
+                else:
+                    x[j] = not x[j]  # undo flip of spin of node
 
-        if cur_e < min_energy:  # record new minimum energy state solution
+        if cur_e < min_energy:
             min_energy = cur_e
             best_sol = np.copy(x)
 

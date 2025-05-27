@@ -14,8 +14,8 @@ import qubo_dense_solver as qs
 
 
 def draw_graph(
-    x_cor: NDArray[np.float_],
-    y_cor: NDArray[np.float_],
+    x_cor: NDArray[np.float64],
+    y_cor: NDArray[np.float64],
     tour: NDArray[np.int_],
     n: int,
     cost: float,
@@ -62,7 +62,7 @@ def get_city_and_tour_step(n: int, index: int) -> tuple[int, int]:
 
 
 def read_sol(
-    n: int, sol: NDArray[np.bool_], dists: NDArray[np.float_]
+    n: int, sol: NDArray[np.bool_], dists: NDArray[np.float64]
 ) -> tuple[NDArray[np.int_], float]:
     tour = np.zeros(n, dtype=int)
     for i in range(len(sol)):
@@ -78,7 +78,7 @@ def read_sol(
 
 # return distance between cities u and v
 def get_dist(
-    u: int, v: int, x_cor: NDArray[np.float_], y_cor: NDArray[np.float_]
+    u: int, v: int, x_cor: NDArray[np.float64], y_cor: NDArray[np.float64]
 ):
     return math.sqrt((x_cor[u] - x_cor[v]) ** 2 + (y_cor[u] - y_cor[v]) ** 2)
 
@@ -95,7 +95,7 @@ def main():
     Q = tsp.get_qubo_matrix(n, dists)  # QUBO matrix given instance of TSP
 
     num_res = 10  # number of restarts
-    num_iters = 10  # number of iterations
+    num_iters = 1000  # number of iterations
     decay_rate = 0.7  # beta schedule for each iteration
     beta_sched = np.exp(-decay_rate * np.linspace(0, 10, num_iters))
 

@@ -6,6 +6,16 @@ sys.path.append("../src/")
 import qubo_dense_solver as qds
 
 
+def delta_energy_test():
+    Q = np.array([[0, 1, 1], [1, 1, 0], [1, 0, 1]])
+    # qds.energy(Q, np.array([1,1,0]))) = 3
+    # qds.energy(Q, np.array([1,1,1]))) = 6
+    if qds.delta_energy(Q, np.array([1, 1, 1]), 2) != 3:
+        raise ValueError("Incorrect delta energy computation")
+    if qds.delta_energy(Q, np.array([1, 1, 0]), 2) != -3:
+        raise ValueError("Incorrect delta energy computation")
+
+
 def energy_test():
     if qds.energy(np.array([[0, 1], [2, 3]]), np.array([5, 7])) != 252:
         raise ValueError("Incorrect energy computation")
@@ -57,14 +67,16 @@ def qubo_solve_test():
     if x.any():
         print("Min energy state: {} is not zero vector".format(x.astype(int)))
         print("The chances of this occuring are small but non-zero")
-    print("Unit tests complete")
 
 
 def main():
+    delta_energy_test()
     energy_test()
     boltzmann_factor_test()
     accept_sol_test()
     qubo_solve_test()
+
+    print("Unit tests complete")
 
 
 main()
