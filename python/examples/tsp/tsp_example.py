@@ -3,14 +3,11 @@ from numpy.typing import NDArray
 import math
 import networkx as nx
 import matplotlib.pyplot as plt
-
-
-import tsp
-
 import sys
 
 sys.path.append("../../src/")
-import qubo_dense_solver as qs
+import qubo_dense_solver as qds
+import tsp
 
 
 def draw_graph(
@@ -22,23 +19,19 @@ def draw_graph(
 ) -> None:
     G = nx.DiGraph()
 
-    # Add nodes and their positions
     node_pos = {i: (x_cor[i], y_cor[i]) for i in range(n)}
     G.add_nodes_from(node_pos.keys())
 
-    # Add edges for the tour
     edges = [(tour[i], tour[(i + 1) % n]) for i in range(n)]
     G.add_edges_from(edges)
 
     plt.figure(figsize=(8, 6))
 
-    # Draw nodes and labels
     nx.draw_networkx_nodes(
         G, pos=node_pos, node_color="lightblue", node_size=500
     )
     nx.draw_networkx_labels(G, pos=node_pos)
 
-    # Draw edges with arrows
     nx.draw_networkx_edges(
         G,
         pos=node_pos,
@@ -100,7 +93,7 @@ def main():
     beta_sched = np.exp(-decay_rate * np.linspace(0, 10, num_iters))
 
     # run simulated annealing
-    x = qs.qubo_solve(Q, num_res, num_iters, beta_sched)
+    x = qds.qubo_solve(Q, num_res, num_iters, beta_sched)
     tour, cost = read_sol(n, x, dists)
     draw_graph(x_cor, y_cor, tour, n, cost)
 
