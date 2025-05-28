@@ -1,9 +1,11 @@
 import numpy as np
 from numpy.typing import NDArray
 from numba import njit
+from numba import float64, int64, boolean
+from numba.types import Tuple
 
 
-@njit
+@njit(float64(float64[:, :], boolean[:], int64))
 def delta_energy(Q: NDArray[np.float64], x: NDArray[np.bool_], i: int) -> float:
     """
     Compute the delta energy: (candidate energy) - (current energy) if the ith
@@ -31,7 +33,7 @@ def energy(Q: NDArray[np.float64], x: NDArray[np.bool_]) -> float:
 #    return e
 
 
-@njit
+@njit(float64(float64, float64))
 def boltzmann_factor(delta_energy: float, beta: float) -> float:
     """
     Compute Boltzmann factor given delta energy, and beta schedule.
@@ -46,7 +48,7 @@ def boltzmann_factor(delta_energy: float, beta: float) -> float:
     return np.exp(-delta_energy * beta)
 
 
-@njit
+@njit(boolean(float64, float64))
 def accept_sol(delta_energy: float, beta: float) -> bool:
     """
     Accept or decline candidate state given delta energy and beta schedule by
@@ -58,25 +60,31 @@ def accept_sol(delta_energy: float, beta: float) -> bool:
     return np.random.random() < boltzmann_factor(delta_energy, beta)
 
 
-@njit
+@njit(
+    Tuple((float64, boolean))(
+        float64[:, :], boolean[:], float64[:], int64, float64, float64, boolean
+    )
+)
 def iteration(
     Q: NDArray[np.float64],
     x: NDArray[np.bool_],
-    delta_energy_array: NDArray[np.bool_],
+    delta_energies: NDArray[np.float64],
+    n: int,
     beta: float,
     cur_e: float,
     past_state_change: bool,
 ) -> tuple[float, bool]:
 
     state_change = False
-    for j in range(Q.shape[0]):
-        if past_state_change | state_change:
-            delta_energy_array[j] = delta_energy(Q, x, j)
+    for j in range(n):
+        if past_state_change:
+            delta_energies[j] = delta_energy(Q, x, j)
 
-        if accept_sol(delta_energy_array[j], beta):
+        if accept_sol(delta_energies[j], beta):
             x[j] = x[j] ^ True  # flip of spin of node
-            cur_e += delta_energy_array[j]
+            cur_e += delta_energies[j]
             state_change = True
+            past_state_change = True
 
     return cur_e, state_change
 
@@ -128,45 +136,28 @@ def qubo_solve(
 
     input_check(Q, num_res, num_iters, beta_sched)
 
-    n = Q.shape[0]  # each solution comprises n bit assignments
-
+    n = Q.shape[0]
     # initial solution with min energy state
     best_sol = np.zeros(n, dtype=bool)
     min_energy = float("inf")
 
-    delta_energy_array = np.zeros(n, dtype=float)
+    delta_energies = np.zeros(n, dtype=float)
     x = np.zeros(n, dtype=bool)
-    past_state_change = True
+    state_change = True
 
     for _ in range(num_res):
         x[:] = np.random.randint(2, size=n, dtype=bool)  # start state
         cur_e = energy(Q, x)  # associated energy
+        state_change = True
 
-        past_state_change = True
         for i in range(num_iters):
-            beta = beta_sched[i]
-
-            cur_e, past_state_change = iteration(
-                Q, x, delta_energy_array, beta, cur_e, past_state_change
+            cur_e, state_change = iteration(
+                Q, x, delta_energies, n, beta_sched[i], cur_e, state_change
             )
-
-            # state_change = False
-            # for j in range(n):
-            #    if past_state_change | state_change:
-            #        delta_energy_array[j] = delta_energy(Q, x, j)
-
-            #    if accept_sol(delta_energy_array[j], beta):
-            #        x[j] = x[j] ^ True  # flip of spin of node
-            #        cur_e += delta_energy_array[j]
-            #        state_change = True
-
-            # if not state_change:
-            #    past_state_change = False
-            # else:
-            #    past_state_change = True
 
         if cur_e < min_energy:
             min_energy = cur_e
+            print(cur_e)
             best_sol = np.copy(x)
 
     return best_sol
