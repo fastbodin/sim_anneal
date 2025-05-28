@@ -1,5 +1,5 @@
 import numpy as np
-
+import matplotlib.pyplot as plt
 import sys
 
 sys.path.append("../src/")
@@ -10,9 +10,9 @@ def delta_energy_test():
     Q = np.array([[0, 1, 1], [1, 1, 0], [1, 0, 1]])
     # qds.energy(Q, np.array([1,1,0]))) = 3
     # qds.energy(Q, np.array([1,1,1]))) = 6
-    if qds.delta_energy(Q, np.array([1, 1, 1]), 2) != 3:
+    if qds.delta_energy(Q, np.array([1, 1, 1]), 2) != -3:
         raise ValueError("Incorrect delta energy computation")
-    if qds.delta_energy(Q, np.array([1, 1, 0]), 2) != -3:
+    if qds.delta_energy(Q, np.array([1, 1, 0]), 2) != 3:
         raise ValueError("Incorrect delta energy computation")
 
 
@@ -24,24 +24,35 @@ def energy_test():
 
 
 def boltzmann_factor_test():
-    # should be 0.9139311....
-    bolt_f = qds.boltzmann_factor(6, 15, 100)
-    if bolt_f >= 0.913932 or bolt_f <= 0.913931:
+    # should be 0.36787944117144233
+    bolt_f = qds.boltzmann_factor(1, 1)
+    if bolt_f >= 0.3678795 or bolt_f <= 0.3678793:
         raise ValueError("Incorrect boltzmann factor")
-    # should be 0.7594152...
-    bolt_f = qds.boltzmann_factor(0, 3.33, 12.1)
-    if bolt_f >= 0.75942 or bolt_f <= 0.759414:
+    # should be 0.0889216174593863
+    bolt_f = qds.boltzmann_factor(2.2, 1.1)
+    if bolt_f >= 0.088921618 or bolt_f <= 0.088921616:
         raise ValueError("Incorrect boltzmann factor")
 
 
 def accept_sol_test():
-    if not qds.accept_sol(10, 10, 0.1):
+    if not qds.accept_sol(0, 0.1):
         raise ValueError("Incorrect decision")
+    if not qds.accept_sol(-1, 0.1):
+        raise ValueError("Incorrect decision")
+    if qds.accept_sol(1, 10000):
+        boltz_f = qds.boltzmann_factor(1, 10000)
+        print(
+            """"Boltzmann factor is {} and delta energy is 1 yet
+              solution was accepted""".format(
+                boltz_f
+            )
+        )
+        print("The chances of this occuring are small but non-zero")
 
     count = 0
     num_iter = 100000
     for _ in range(num_iter):
-        count += qds.accept_sol(10, 10.5, 1)
+        count += qds.accept_sol(0.5, 1)
     boltz_f = 0.6065306597126334
     acc_rate = count / num_iter
     if (acc_rate < boltz_f - 0.01) or (acc_rate > boltz_f + 0.01):
@@ -60,7 +71,14 @@ def qubo_solve_test():
     num_res = 1
     num_iters = 10
     decay_rate = 0.7
-    beta_sched = np.exp(-decay_rate * np.linspace(0, 10, num_iters))
+    temp = np.exp(-decay_rate * np.linspace(0, 10, num_iters))
+    beta_sched = 1 / temp
+
+    fig, axs = plt.subplots(1, 2)
+    axs[0].plot(np.linspace(0, 10, num_iters), temp, color="blue")
+    axs[0].set_title("Temp")
+    axs[1].plot(np.linspace(0, 10, num_iters), beta_sched, color="red")
+    axs[1].set_title("Beta")
 
     x = qds.qubo_solve(Q, num_res, num_iters, beta_sched)
 

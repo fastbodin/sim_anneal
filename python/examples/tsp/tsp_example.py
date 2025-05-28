@@ -79,7 +79,7 @@ def get_dist(
 def main():
     np.random.seed(seed=21)  # seed random number generator
 
-    n = 12  # number of cities
+    n = 20  # number of cities
     x_cor, y_cor = np.random.rand(n), np.random.rand(n)  # coordinates of cities
     # distance between cities
     dists = np.array(
@@ -87,10 +87,17 @@ def main():
     )
     Q = tsp.get_qubo_matrix(n, dists)  # QUBO matrix given instance of TSP
 
-    num_res = 10  # number of restarts
-    num_iters = 1000  # number of iterations
-    decay_rate = 0.7  # beta schedule for each iteration
-    beta_sched = np.exp(-decay_rate * np.linspace(0, 10, num_iters))
+    num_res = 100
+    num_iters = 1000
+    temp = np.exp(-0.6 * np.linspace(0, 10, num_iters))
+    beta_sched = 1 / temp
+
+    # fig, axs = plt.subplots(1, 2)
+    # axs[0].plot(np.linspace(0, 10, num_iters), temp, color = 'blue')
+    # axs[0].set_title("Temp")
+    # axs[1].plot(np.linspace(0, 10, num_iters), beta_sched, color = 'red')
+    # axs[1].set_title("Beta")
+    # plt.show()
 
     # run simulated annealing
     x = qds.qubo_solve(Q, num_res, num_iters, beta_sched)

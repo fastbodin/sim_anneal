@@ -23,7 +23,9 @@ def distance_penalty(
         n: number of cities
     """
     for i in range(n):  # for each pair of cities
-        for j in range(i + 1, n):
+        for j in range(n):
+            if i == j:
+                continue
             for k in range(n):  # for each tour step
                 # index of x_{i,k} <- city i at step k
                 index_0 = city_visit_id(i, k, n)  #
@@ -31,7 +33,7 @@ def distance_penalty(
                 index_1 = city_visit_id(j, (k + 1) % n, n)
                 # update term: x_{u, j}x_{v, j+1}
                 Q[index_0][index_1] += dists[i][j]
-                Q[index_1][index_0] += dists[i][j]
+                Q[index_1][index_0] += dists[j][i]
 
 
 def multiple_step_penalty(Q: NDArray[np.float64], n: int, p: float) -> None:
@@ -83,8 +85,8 @@ def constraint_penalty(n: int, dists: NDArray[np.float64]) -> float:
     Returns penalty for not satisfying constraints of TSP
     """
     max_d = np.max(dists)
-    min_d = np.min(dists)
-    return n * (max_d - min_d) + 1.0
+    min_d = np.min(dists[~np.eye(n, dtype=bool)])  # ignore diagonal
+    return n * (max_d - min_d) + 1
 
 
 def input_check(n: int, dists: NDArray[np.float64]) -> None:
