@@ -1,55 +1,37 @@
 import numpy as np
 from numpy.typing import NDArray
-from numba import njit
-from numba import float64, int64, boolean
-from numba.types import Tuple
 
 
-@njit(float64(float64[:, :], boolean[:], int64))
 def delta_energy(Q: NDArray[np.float64], x: NDArray[np.bool_], i: int) -> float:
     """
     Compute the delta energy: (candidate energy) - (current energy) if the ith
-    bit of x is flipped
+    bit of x is flipped.
+
+    Given symmetric matrix Q, boolean vector x, and vector e where e is all
+    zeros except the ith bit is 1-2x[i] (note x + e = x with ith bit flipped)
+
+    (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i][i]
     """
-    return (2 - 4 * x[i]) * np.sum(Q[i][x]) + Q[i][i]
+
+    return (2 - 4 * x[i]) * np.dot(Q[i], x) + Q[i][i]
 
 
 def energy(Q: NDArray[np.float64], x: NDArray[np.bool_]) -> float:
     """
-    Compute: (x Q x^T) given matrix Q and vector x.
+    Compute: xQx^T given matrix Q and vector x.
     """
+
     return np.matmul(np.matmul(x, Q), x)
 
 
-# @njit
-# def energy(Q: NDArray[np.float64], x: NDArray[np.bool_], n: int) -> float:
-#    e = 0.0
-#    for i in range(n):
-#        if x[i]:
-#            e += Q[i][i]
-#            for j in range(i+1, n):
-#                if x[j]:
-#                    e += 2*Q[i][j]
-#    return e
-
-
-@njit(float64(float64, float64))
 def boltzmann_factor(delta_energy: float, beta: float) -> float:
     """
-    Compute Boltzmann factor given delta energy, and beta schedule.
-
-    Given state i (energy e_i), the probability p_j of flipping to state j
-    (energy e_j) is given by
-    1 / p_j = exp((e_j - e_i) / kT)
-    where k is constant and T is temperature. This reduces to
-    p_j = exp(-(e_j - e_i) * beta)
-    where beta = 1/kT.
+    Compute Boltzmann factor given delta energy and beta.
     """
     return np.exp(-delta_energy * beta)
 
 
-@njit(boolean(float64, float64))
-def accept_sol(delta_energy: float, beta: float) -> bool:
+def accept_neighbor_state(delta_energy: float, beta: float) -> bool:
     """
     Accept or decline candidate state given delta energy and beta schedule by
     the Metropolis-Hasting rule.
@@ -60,36 +42,89 @@ def accept_sol(delta_energy: float, beta: float) -> bool:
     return np.random.random() < boltzmann_factor(delta_energy, beta)
 
 
-@njit(
-    Tuple((float64, boolean))(
-        float64[:, :], boolean[:], float64[:], int64, float64, float64, boolean
-    )
-)
-def iteration(
+def consider_neighbor_states(
     Q: NDArray[np.float64],
-    x: NDArray[np.bool_],
-    delta_energies: NDArray[np.float64],
     n: int,
+    x: NDArray[np.bool_],
+    x_energy: float,
+    delta_energies: NDArray[np.float64],
     beta: float,
-    cur_e: float,
-    past_state_change: bool,
+    state_change: bool,
 ) -> tuple[float, bool]:
+    """
+    Given state x, consider neighboring states obtained by flipping
+    each node. Accept neighboring states based on Metropolis-Hasting rule.
 
-    state_change = False
-    for j in range(n):
-        if past_state_change:
-            delta_energies[j] = delta_energy(Q, x, j)
+    Args:
+        Q: quadratic matrix
+        n: number of variables
+        x: state vector
+        x_energy: energy of current state
+        delta_energies: delta energies of neighboring states
+        beta: 1/temperature for iteration
+        state_change: Truth value of statement 'previous iteration resulted
+                      in a state change'
 
-        if accept_sol(delta_energies[j], beta):
-            x[j] = x[j] ^ True  # flip of spin of node
-            cur_e += delta_energies[j]
+    Returns:
+        x_energy: Energy of current state
+        local_state_change: Truth value of statement 'state change occured
+                            in iteration'
+    """
+
+    iter_state_change = False
+    for i in range(n):
+        if state_change:
+            # a state change occured since delta_energies[i] was last
+            # updated
+            delta_energies[i] = delta_energy(Q, x, i)
+
+        if accept_neighbor_state(delta_energies[i], beta):
+            x[i] = x[i] ^ True  # flip of spin of node
+            x_energy += delta_energies[i]
             state_change = True
-            past_state_change = True
+            iter_state_change = True
 
-    return cur_e, state_change
+    return x_energy, iter_state_change
 
 
-@njit
+def sim_anneal(
+    Q: NDArray[np.float64],
+    n: int,
+    num_iters: int,
+    beta_sched: NDArray[np.float64],
+) -> tuple[NDArray[np.bool_], float]:
+    """
+    From random starting state, preform simulated anneal.
+
+    Args:
+        Q: quadratic matrix
+        n: number of variables
+        num_iters: number of iterations
+        beta_sched: 1/temperature schedule
+
+    Returns:
+        x: minimum energy state found in simulated anneal
+        x_energy: associated energy
+    """
+
+    x = np.random.randint(2, size=n, dtype=np.bool_)
+    x_energy = energy(Q, x)
+
+    d_energies = np.zeros(
+        n, dtype=np.float64
+    )  # delta energies of neighboring states
+    state_change = (
+        True  # indicator var. that iteration resulted in state change
+    )
+
+    for i in range(num_iters):
+        x_energy, state_change = consider_neighbor_states(
+            Q, n, x, x_energy, d_energies, beta_sched[i], state_change
+        )
+
+    return x, x_energy
+
+
 def input_check(
     Q: NDArray[np.float64],
     num_res: int,
@@ -137,27 +172,17 @@ def qubo_solve(
     input_check(Q, num_res, num_iters, beta_sched)
 
     n = Q.shape[0]
-    # initial solution with min energy state
-    best_sol = np.zeros(n, dtype=bool)
+    min_energy_state = np.empty(n, dtype=np.bool_)
     min_energy = float("inf")
 
-    delta_energies = np.zeros(n, dtype=float)
-    x = np.zeros(n, dtype=bool)
-    state_change = True
+    x = np.empty(n, dtype=np.bool_)
+    x_energy = float("inf")
 
     for _ in range(num_res):
-        x[:] = np.random.randint(2, size=n, dtype=bool)  # start state
-        cur_e = energy(Q, x)  # associated energy
-        state_change = True
+        x, x_energy = sim_anneal(Q, n, num_iters, beta_sched)
 
-        for i in range(num_iters):
-            cur_e, state_change = iteration(
-                Q, x, delta_energies, n, beta_sched[i], cur_e, state_change
-            )
+        if x_energy < min_energy:
+            min_energy_state = np.copy(x)
+            min_energy = x_energy
 
-        if cur_e < min_energy:
-            min_energy = cur_e
-            print(cur_e)
-            best_sol = np.copy(x)
-
-    return best_sol
+    return min_energy_state

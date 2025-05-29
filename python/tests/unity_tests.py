@@ -8,11 +8,11 @@ import qubo_dense_solver as qds
 
 def delta_energy_test():
     Q = np.array([[0, 1, 1], [1, 1, 0], [1, 0, 1]])
-    # qds.energy(Q, np.array([1,1,0]))) = 3
-    # qds.energy(Q, np.array([1,1,1]))) = 6
-    if qds.delta_energy(Q, np.array([1, 1, 1]), 2) != -3:
+    # qds.energy(Q, np.array([1,1,0])) = 3
+    # qds.energy(Q, np.array([1,1,1])) = 6
+    if qds.delta_energy(Q, np.array([1, 1, 1], dtype=np.bool_), 2) != -3:
         raise ValueError("Incorrect delta energy computation")
-    if qds.delta_energy(Q, np.array([1, 1, 0]), 2) != 3:
+    if qds.delta_energy(Q, np.array([1, 1, 0], dtype=np.bool_), 2) != 3:
         raise ValueError("Incorrect delta energy computation")
 
 
@@ -34,12 +34,12 @@ def boltzmann_factor_test():
         raise ValueError("Incorrect boltzmann factor")
 
 
-def accept_sol_test():
-    if not qds.accept_sol(0, 0.1):
+def accept_neighbor_state_test():
+    if not qds.accept_neighbor_state(0, 0.1):
         raise ValueError("Incorrect decision")
-    if not qds.accept_sol(-1, 0.1):
+    if not qds.accept_neighbor_state(-1, 0.1):
         raise ValueError("Incorrect decision")
-    if qds.accept_sol(1, 10000):
+    if qds.accept_neighbor_state(1, 10000):
         boltz_f = qds.boltzmann_factor(1, 10000)
         print(
             """"Boltzmann factor is {} and delta energy is 1 yet
@@ -52,7 +52,7 @@ def accept_sol_test():
     count = 0
     num_iter = 100000
     for _ in range(num_iter):
-        count += qds.accept_sol(0.5, 1)
+        count += qds.accept_neighbor_state(0.5, 1)
     boltz_f = 0.6065306597126334
     acc_rate = count / num_iter
     if (acc_rate < boltz_f - 0.01) or (acc_rate > boltz_f + 0.01):
@@ -91,7 +91,7 @@ def main():
     delta_energy_test()
     energy_test()
     boltzmann_factor_test()
-    accept_sol_test()
+    accept_neighbor_state_test()
     qubo_solve_test()
 
     print("Unit tests complete")
