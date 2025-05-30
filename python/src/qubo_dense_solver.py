@@ -1,29 +1,31 @@
 import numpy as np
 from numpy.typing import NDArray
+from numba import njit
 
 
+@njit
 def delta_energy(Q: NDArray[np.float64], x: NDArray[np.bool_], i: int) -> float:
     """
     Compute the delta energy: (candidate energy) - (current energy) if the ith
     bit of x is flipped.
 
-    Given symmetric matrix Q, boolean vector x, and vector e where e is all
-    zeros except the ith bit is 1-2x[i] (note x + e = x with ith bit flipped)
+    Given symmetric matrix Q, boolean vector x, and boolean vector e where e is
+    all zeros except the ith bit is 1-2x[i] (x + e = x with ith bit flipped)
 
     (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i][i]
     """
 
-    return (2 - 4 * x[i]) * np.dot(Q[i], x) + Q[i][i]
+    return (2 - 4 * x[i]) * np.sum(Q[i][x]) + Q[i][i]
 
 
 def energy(Q: NDArray[np.float64], x: NDArray[np.bool_]) -> float:
     """
-    Compute: xQx^T given matrix Q and vector x.
+    Compute: (x Q x^T) given matrix Q and vector x.
     """
-
     return np.matmul(np.matmul(x, Q), x)
 
 
+@njit
 def boltzmann_factor(delta_energy: float, beta: float) -> float:
     """
     Compute Boltzmann factor given delta energy and beta.
@@ -31,6 +33,7 @@ def boltzmann_factor(delta_energy: float, beta: float) -> float:
     return np.exp(-delta_energy * beta)
 
 
+@njit
 def accept_neighbor_state(delta_energy: float, beta: float) -> bool:
     """
     Accept or decline candidate state given delta energy and beta schedule by
@@ -42,6 +45,7 @@ def accept_neighbor_state(delta_energy: float, beta: float) -> bool:
     return np.random.random() < boltzmann_factor(delta_energy, beta)
 
 
+@njit
 def consider_neighbor_states(
     Q: NDArray[np.float64],
     n: int,
@@ -74,8 +78,7 @@ def consider_neighbor_states(
     iter_state_change = False
     for i in range(n):
         if state_change:
-            # a state change occured since delta_energies[i] was last
-            # updated
+            # a state change occured since delta_energies[i] was last used
             delta_energies[i] = delta_energy(Q, x, i)
 
         if accept_neighbor_state(delta_energies[i], beta):
@@ -109,13 +112,10 @@ def sim_anneal(
 
     x = np.random.randint(2, size=n, dtype=np.bool_)
     x_energy = energy(Q, x)
-
-    d_energies = np.zeros(
-        n, dtype=np.float64
-    )  # delta energies of neighboring states
-    state_change = (
-        True  # indicator var. that iteration resulted in state change
-    )
+    # delta energies of neighboring states
+    d_energies = np.empty(n, dtype=np.float64)
+    # indicator var. that iteration resulted in state change
+    state_change = True
 
     for i in range(num_iters):
         x_energy, state_change = consider_neighbor_states(
@@ -125,6 +125,7 @@ def sim_anneal(
     return x, x_energy
 
 
+@njit
 def input_check(
     Q: NDArray[np.float64],
     num_res: int,
@@ -157,7 +158,8 @@ def qubo_solve(
     beta_sched: NDArray[np.float64],
 ) -> NDArray[np.bool_]:
     """
-    Perform simulated anneal for quadratic unconstrained binary optimization
+    Perform simulated anneal for dense quadratic unconstrained binary
+    optimization
 
     Args:
         Q: quadratic matrix
@@ -166,7 +168,7 @@ def qubo_solve(
         beta_sched: 1/temperature schedule
 
     Returns:
-        best_sol: minimum energy state found
+        min_energy_state: minimum energy state found
     """
 
     input_check(Q, num_res, num_iters, beta_sched)
@@ -174,7 +176,6 @@ def qubo_solve(
     n = Q.shape[0]
     min_energy_state = np.empty(n, dtype=np.bool_)
     min_energy = float("inf")
-
     x = np.empty(n, dtype=np.bool_)
     x_energy = float("inf")
 

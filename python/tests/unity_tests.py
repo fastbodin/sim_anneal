@@ -8,8 +8,6 @@ import qubo_dense_solver as qds
 
 def delta_energy_test():
     Q = np.array([[0, 1, 1], [1, 1, 0], [1, 0, 1]])
-    # qds.energy(Q, np.array([1,1,0])) = 3
-    # qds.energy(Q, np.array([1,1,1])) = 6
     if qds.delta_energy(Q, np.array([1, 1, 1], dtype=np.bool_), 2) != -3:
         raise ValueError("Incorrect delta energy computation")
     if qds.delta_energy(Q, np.array([1, 1, 0], dtype=np.bool_), 2) != 3:
@@ -17,9 +15,10 @@ def delta_energy_test():
 
 
 def energy_test():
-    if qds.energy(np.array([[0, 1], [2, 3]]), np.array([5, 7])) != 252:
+    Q = np.array([[0, 1, 1], [1, 1, 0], [1, 0, 1]])
+    if qds.energy(Q, np.array([1, 1, 0], dtype=np.bool_)) != 3:
         raise ValueError("Incorrect energy computation")
-    if qds.energy(np.array([[2, 9], [1, -2]]), np.array([-3, 2])) != -50:
+    if qds.energy(Q, np.array([1, 1, 1], dtype=np.bool_)) != 6:
         raise ValueError("Incorrect energy computation")
 
 
@@ -70,15 +69,8 @@ def qubo_solve_test():
     Q = np.identity(n)
     num_res = 1
     num_iters = 10
-    decay_rate = 0.7
-    temp = np.exp(-decay_rate * np.linspace(0, 10, num_iters))
+    temp = np.exp(-0.7 * np.linspace(0, 10, num_iters))
     beta_sched = 1 / temp
-
-    fig, axs = plt.subplots(1, 2)
-    axs[0].plot(np.linspace(0, 10, num_iters), temp, color="blue")
-    axs[0].set_title("Temp")
-    axs[1].plot(np.linspace(0, 10, num_iters), beta_sched, color="red")
-    axs[1].set_title("Beta")
 
     x = qds.qubo_solve(Q, num_res, num_iters, beta_sched)
 
