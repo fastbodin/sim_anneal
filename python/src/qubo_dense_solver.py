@@ -3,27 +3,6 @@ from numpy.typing import NDArray
 from numba import njit
 
 
-def delta_energy(Q: NDArray[np.float64], x: NDArray[np.bool_], i: int) -> float:
-    """
-    Compute the delta energy: (candidate energy) - (current energy) if the ith
-    bit of x is flipped.
-
-    Given symmetric matrix Q, boolean vector x, and boolean vector e where e is
-    all zeros except the ith bit is 1-2x[i] (x + e = x with ith bit flipped)
-
-    (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i,i]
-    """
-
-    return (2 - 4 * x[i]) * np.matmul(x, Q[i]) + Q[i, i]
-
-
-def energy(Q: NDArray[np.float64], x: NDArray[np.bool_]) -> float:
-    """
-    Compute: (x Q x^T) given matrix Q and vector x.
-    """
-    return np.matmul(np.matmul(x, Q), x)
-
-
 @njit
 def boltzmann_factor(delta_energy: float, beta: float) -> float:
     """
@@ -73,8 +52,8 @@ def consider_neighbor_states(
         if accept_neighbor_state(delta_energies[i], beta):
             x[i] = x[i] ^ True  # flip of spin of node
             x_energy += delta_energies[i]
+            # update each delta energy after flipping spin of ith node
             for j in range(n):
-                # update each delta energy after flipping spin of ith node
                 if j != i:
                     # Given the jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j]
                     # computed prior to flipping the spin of node i, we can
@@ -86,6 +65,27 @@ def consider_neighbor_states(
             # re-flipping spin of ith node simply flips the sign
             delta_energies[i] *= -1
     return x_energy
+
+
+def delta_energy(Q: NDArray[np.float64], x: NDArray[np.bool_], i: int) -> float:
+    """
+    Compute the delta energy: (candidate energy) - (current energy) if the ith
+    bit of x is flipped.
+
+    Given symmetric matrix Q, boolean vector x, and boolean vector e where e is
+    all zeros except the ith bit is 1-2x[i] (x + e = x with ith bit flipped)
+
+    (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i,i]
+    """
+
+    return (2 - 4 * x[i]) * np.matmul(x, Q[i]) + Q[i, i]
+
+
+def energy(Q: NDArray[np.float64], x: NDArray[np.bool_]) -> float:
+    """
+    Compute: (x Q x^T) given matrix Q and vector x.
+    """
+    return np.matmul(np.matmul(x, Q), x)
 
 
 def sim_anneal(
@@ -165,7 +165,7 @@ def qubo_solve(
         beta_sched: 1/temperature schedule
 
     Returns:
-        min_energy_state: minimum energy state found
+        minimum energy state found
     """
 
     input_check(Q, num_res, num_iters, beta_sched)
