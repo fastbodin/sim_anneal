@@ -14,7 +14,7 @@ def delta_energy(Q: NDArray[np.float64], x: NDArray[np.bool_], i: int) -> float:
     (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i][i]
     """
 
-    return (2 - 4 * x[i]) * np.matmul(Q[i], x) + Q[i, i]
+    return (2 - 4 * x[i]) * np.matmul(x, Q[i]) + Q[i, i]
 
 
 def energy(Q: NDArray[np.float64], x: NDArray[np.bool_]) -> float:
@@ -46,47 +46,37 @@ def accept_neighbor_state(delta_energy: float, beta: float) -> bool:
 
 @njit
 def consider_neighbor_states(
-    Q: NDArray[np.float64],
     n: int,
     x: NDArray[np.bool_],
     x_energy: float,
     delta_energies: NDArray[np.float64],
     beta: float,
-    state_change: bool,
-) -> tuple[float, bool]:
+) -> float:
     """
     Given state x, consider neighboring states obtained by flipping
     each node. Accept neighboring states based on Metropolis-Hasting rule.
 
     Args:
-        Q: quadratic matrix
         n: number of variables
         x: state vector
         x_energy: energy of current state
         delta_energies: delta energies of neighboring states
         beta: 1/temperature for iteration
-        state_change: Truth value of statement 'previous iteration resulted
-                      in a state change'
 
     Returns:
         x_energy: Energy of current state
-        local_state_change: Truth value of statement 'state change occured
-                            in iteration'
     """
 
-    iter_state_change = False
     for i in range(n):
-        if state_change:
-            # a state change occured since delta_energies[i] was last used
-            delta_energies[i] = delta_energy(Q, x, i)
-
         if accept_neighbor_state(delta_energies[i], beta):
             x[i] = x[i] ^ True  # flip of spin of node
             x_energy += delta_energies[i]
-            state_change = True
-            iter_state_change = True
+            for j in range(n):  # update delta energies given accepted state
+                if j != i:
+                    delta_energies[j] -= delta_energies[i]
+            delta_energies[i] = -delta_energies[i]
 
-    return x_energy, iter_state_change
+    return x_energy
 
 
 def sim_anneal(
@@ -112,13 +102,13 @@ def sim_anneal(
     x = np.random.randint(2, size=n, dtype=np.bool_)
     x_energy = energy(Q, x)
     # delta energies of neighboring states
-    d_energies = np.empty(n, dtype=np.float64)
-    # indicator var. that iteration resulted in state change
-    state_change = True
+    d_energies = np.array(
+        [delta_energy(Q, x, i) for i in range(n)], dtype=np.float64
+    )
 
     for i in range(num_iters):
-        x_energy, state_change = consider_neighbor_states(
-            Q, n, x, x_energy, d_energies, beta_sched[i], state_change
+        x_energy = consider_neighbor_states(
+            n, x, x_energy, d_energies, beta_sched[i]
         )
 
     return x, x_energy
