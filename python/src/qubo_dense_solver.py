@@ -3,7 +3,6 @@ from numpy.typing import NDArray
 from numba import njit
 
 
-@njit
 def delta_energy(Q: NDArray[np.float64], x: NDArray[np.bool_], i: int) -> float:
     """
     Compute the delta energy: (candidate energy) - (current energy) if the ith
@@ -15,7 +14,7 @@ def delta_energy(Q: NDArray[np.float64], x: NDArray[np.bool_], i: int) -> float:
     (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i][i]
     """
 
-    return (2 - 4 * x[i]) * np.sum(Q[i][x]) + Q[i][i]
+    return (2 - 4 * x[i]) * np.matmul(Q[i], x) + Q[i, i]
 
 
 def energy(Q: NDArray[np.float64], x: NDArray[np.bool_]) -> float:
