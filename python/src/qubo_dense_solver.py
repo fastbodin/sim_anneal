@@ -11,7 +11,7 @@ def delta_energy(Q: NDArray[np.float64], x: NDArray[np.bool_], i: int) -> float:
     Given symmetric matrix Q, boolean vector x, and boolean vector e where e is
     all zeros except the ith bit is 1-2x[i] (x + e = x with ith bit flipped)
 
-    (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i][i]
+    (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i,i]
     """
 
     return (2 - 4 * x[i]) * np.matmul(x, Q[i]) + Q[i, i]
@@ -46,6 +46,7 @@ def accept_neighbor_state(delta_energy: float, beta: float) -> bool:
 
 @njit
 def consider_neighbor_states(
+    Q: NDArray[np.float64],
     n: int,
     x: NDArray[np.bool_],
     x_energy: float,
@@ -57,6 +58,7 @@ def consider_neighbor_states(
     each node. Accept neighboring states based on Metropolis-Hasting rule.
 
     Args:
+        Q: quadratic matrix
         n: number of variables
         x: state vector
         x_energy: energy of current state
@@ -71,11 +73,18 @@ def consider_neighbor_states(
         if accept_neighbor_state(delta_energies[i], beta):
             x[i] = x[i] ^ True  # flip of spin of node
             x_energy += delta_energies[i]
-            for j in range(n):  # update delta energies given accepted state
+            for j in range(n):
+                # update each delta energy after flipping spin of ith node
                 if j != i:
-                    delta_energies[j] -= delta_energies[i]
-            delta_energies[i] = -delta_energies[i]
-
+                    # Given the jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j]
+                    # computed prior to flipping the spin of node i, we can
+                    # update it to reflect this flip by adding the change to
+                    # the term x[i] * x[j]
+                    delta_energies[j] += (
+                        (2 - 4 * x[j]) * (2 * x[i] - 1) * Q[i, j]
+                    )
+            # re-flipping spin of ith node simply flips the sign
+            delta_energies[i] *= -1
     return x_energy
 
 
@@ -108,13 +117,12 @@ def sim_anneal(
 
     for i in range(num_iters):
         x_energy = consider_neighbor_states(
-            n, x, x_energy, d_energies, beta_sched[i]
+            Q, n, x, x_energy, d_energies, beta_sched[i]
         )
 
     return x, x_energy
 
 
-@njit
 def input_check(
     Q: NDArray[np.float64],
     num_res: int,
