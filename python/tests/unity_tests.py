@@ -6,22 +6,6 @@ sys.path.append("../src/")
 import qubo_dense_solver as qds
 
 
-def delta_energy_test():
-    Q = np.array([[0, 1, 1], [1, 1, 0], [1, 0, 1]])
-    if qds.delta_energy(Q, np.array([1, 1, 1], dtype=np.bool_), 2) != -3:
-        raise ValueError("Incorrect delta energy computation")
-    if qds.delta_energy(Q, np.array([1, 1, 0], dtype=np.bool_), 2) != 3:
-        raise ValueError("Incorrect delta energy computation")
-
-
-def energy_test():
-    Q = np.array([[0, 1, 1], [1, 1, 0], [1, 0, 1]])
-    if qds.energy(Q, np.array([1, 1, 0], dtype=np.bool_)) != 3:
-        raise ValueError("Incorrect energy computation")
-    if qds.energy(Q, np.array([1, 1, 1], dtype=np.bool_)) != 6:
-        raise ValueError("Incorrect energy computation")
-
-
 def boltzmann_factor_test():
     # should be 0.36787944117144233
     bolt_f = qds.boltzmann_factor(1, 1)
@@ -64,6 +48,22 @@ def accept_neighbor_state_test():
         print("The chances of this occuring are small but non-zero")
 
 
+def delta_energy_test():
+    Q = np.array([[0, 1, 1], [1, 1, 0], [1, 0, 1]])
+    if qds.delta_energy(Q, np.array([1, 1, 1], dtype=np.bool_), 2) != -3:
+        raise ValueError("Incorrect delta energy computation")
+    if qds.delta_energy(Q, np.array([1, 1, 0], dtype=np.bool_), 2) != 3:
+        raise ValueError("Incorrect delta energy computation")
+
+
+def energy_test():
+    Q = np.array([[0, 1, 1], [1, 1, 0], [1, 0, 1]])
+    if qds.energy(Q, np.array([1, 1, 0], dtype=np.bool_)) != 3:
+        raise ValueError("Incorrect energy computation")
+    if qds.energy(Q, np.array([1, 1, 1], dtype=np.bool_)) != 6:
+        raise ValueError("Incorrect energy computation")
+
+
 def qubo_solve_test():
     n = 20
     Q = np.identity(n)
@@ -80,10 +80,11 @@ def qubo_solve_test():
 
 
 def main():
-    delta_energy_test()
-    energy_test()
     boltzmann_factor_test()
     accept_neighbor_state_test()
+
+    delta_energy_test()
+    energy_test()
     qubo_solve_test()
 
     print("Unit tests complete")

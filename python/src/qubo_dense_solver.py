@@ -58,7 +58,7 @@ def consider_neighbor_states(
                     # Given the jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j]
                     # computed prior to flipping the spin of node i, we can
                     # update it to reflect this flip by adding the change to
-                    # the term x[i] * x[j]
+                    # the term x[i] * x[j] in xQx^T
                     delta_energies[j] += (
                         (2 - 4 * x[j]) * (2 * x[i] - 1) * Q[i, j]
                     )
