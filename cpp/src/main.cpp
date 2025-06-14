@@ -1,20 +1,8 @@
 #include "include.h"
+#include <vector>
 
-double random_prob() {
-  // std::random_device rd;  // used to obtain a seed for the random number
-  std::mt19937 gen(1); // Standard mersenne_twister_engine seeded with rd()
-  std::uniform_real_distribution<> dis(0.0, 1.0);
-  return dis(gen);
-}
-
-bool boltzmann_factor(const double delta_energy, const double beta) {
-  /*/
-   * Compute Boltzmann factor given delta energy and beta.
-   */
-  return std::exp(-delta_energy * beta);
-}
-
-bool accept_neighbor_state(const double delta_energy, const double beta) {
+bool accept_neighbor_state(const double delta_energy, const double beta,
+                           Random rng) {
   /*/
    * Accept or decline candidate state given delta energy and beta schedule by
    * the Metropolis-Hasting rule.
@@ -22,14 +10,14 @@ bool accept_neighbor_state(const double delta_energy, const double beta) {
   if (delta_energy <= 0)
     return true;
   // accept state with probability equal to Boltzmann factor
-  return (random_prob() < boltzmann_factor(delta_energy, beta));
+  return (rng.getprob() < std::exp(-delta_energy * beta));
 }
 
 double consider_neighbor_states(const std::vector<std::vector<double>> &Q,
                                 const int n, std::vector<bool> &x,
                                 double x_energy,
                                 std::vector<double> &delta_energies,
-                                const double beta) {
+                                const double beta, Random rng) {
   /*/
    *    Given state x, consider neighboring states obtained by flipping
    *    each node. Accept neighboring states based on Metropolis-Hasting rule.
@@ -45,12 +33,12 @@ double consider_neighbor_states(const std::vector<std::vector<double>> &Q,
    *    Returns:
    *        x_energy: Energy of current state
    */
-  for (int i = 0; i < n; i++) {
-    if (accept_neighbor_state(delta_energies[i], beta)) {
+  for (int i = 0; i < n; ++i) {
+    if (accept_neighbor_state(delta_energies[i], beta, rng)) {
       x[i] = !x[i]; // flip of spin of node
       x_energy += delta_energies[i];
       // update each delta energy after flipping spin of ith node
-      for (int j = 0; j < n; j++) {
+      for (int j = 0; j < n; ++j) {
         if (j != i) {
           // Given the jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j]
           // computed prior to flipping the spin of node i, we can
@@ -76,7 +64,7 @@ double delta_energy(const std::vector<std::vector<double>> &Q, const int n,
    * (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i,i]
    */
   double value = 0;
-  for (int j = 0; j < n; j++) {
+  for (int j = 0; j < n; ++j) {
     value += Q[i][j] * x[j];
   }
   return 2 * (1 - 2 * x[i]) * value + Q[i][i];
@@ -86,16 +74,47 @@ double energy(const std::vector<std::vector<double>> &Q, const int n,
               const std::vector<bool> &x) {
   // Compute: xQx^T given symmetric matrix Q and vector x.
   double value = 0;
-  for (int i = 0; i < n; i++) {
-    for (int j = i + 1; j < n; j++) {
+  for (int i = 0; i < n; ++i) {
+    for (int j = i + 1; j < n; ++j) {
       value += 2 * Q[i][j] * x[i] * x[j];
     }
   }
   return value;
 }
 
+std::vector<bool> sim_anneal(Qubo &qubo) {
+  /*/
+   *   From random starting state, preform simulated anneal.
+   *
+   *   Args:
+   *       Q: quadratic matrix
+   *       n: number of variables
+   *       num_iters: number of iterations
+   *       beta_sched: 1/temperature schedule
+   *
+   *   Returns:
+   *       x: minimum energy state found in simulated anneal
+   *       x_energy: associated energy
+   */
+  //
+  //    x = np.random.randint(2, size=n, dtype=np.bool_)
+  //    x_energy = energy(Q, x)
+  //    # delta energies of neighboring states
+  //    d_energies = np.array(
+  //        [delta_energy(Q, x, i) for i in range(n)], dtype=np.float64
+  //    )
+  //
+  //    for i in range(num_iters):
+  //        x_energy = consider_neighbor_states(
+  //            Q, n, x, x_energy, d_energies, beta_sched[i]
+  //        )
+  //
+  //    return x, x_energy
+}
+
 int main(int argc, char *argv[]) {
-  for (int i = 0; i <= 10; i++) {
-    std::cout << random_prob() << std::endl;
+  Random rng; // random number generator
+  for (int i = 0; i <= 10; ++i) {
+    std::cout << rng.getprob() << std::endl;
   }
 }
