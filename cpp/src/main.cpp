@@ -1,8 +1,8 @@
 #include "include.h"
 
 double random_prob() {
-  std::random_device rd;  // used to obtain a seed for the random number
-  std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
+  // std::random_device rd;  // used to obtain a seed for the random number
+  std::mt19937 gen(1); // Standard mersenne_twister_engine seeded with rd()
   std::uniform_real_distribution<> dis(0.0, 1.0);
   return dis(gen);
 }
@@ -47,7 +47,7 @@ double consider_neighbor_states(const std::vector<std::vector<double>> &Q,
    */
   for (int i = 0; i < n; i++) {
     if (accept_neighbor_state(delta_energies[i], beta)) {
-      x[i] = x[i] ^ true; // flip of spin of node
+      x[i] = !x[i]; // flip of spin of node
       x_energy += delta_energies[i];
       // update each delta energy after flipping spin of ith node
       for (int j = 0; j < n; j++) {
@@ -66,10 +66,33 @@ double consider_neighbor_states(const std::vector<std::vector<double>> &Q,
   return x_energy;
 }
 
-//    return x_energy
+double delta_energy(const std::vector<std::vector<double>> &Q, const int n,
+                    const std::vector<bool> &x, const int i) {
+  /*/
+   * Compute the delta energy: (candidate energy) - (current energy) if the ith
+   * bit of x is flipped. Given symmetric matrix Q, boolean vector x, and
+   * boolean vector e where e is all zeros except the ith bit is
+   * 1-2x[i] (x + e = x with ith bit flipped)
+   * (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i,i]
+   */
+  double value = 0;
+  for (int j = 0; j < n; j++) {
+    value += Q[i][j] * x[j];
+  }
+  return 2 * (1 - 2 * x[i]) * value + Q[i][i];
+}
 
-//
-//
+double energy(const std::vector<std::vector<double>> &Q, const int n,
+              const std::vector<bool> &x) {
+  // Compute: xQx^T given symmetric matrix Q and vector x.
+  double value = 0;
+  for (int i = 0; i < n; i++) {
+    for (int j = i + 1; j < n; j++) {
+      value += 2 * Q[i][j] * x[i] * x[j];
+    }
+  }
+  return value;
+}
 
 int main(int argc, char *argv[]) {
   for (int i = 0; i <= 10; i++) {
