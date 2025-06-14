@@ -1,0 +1,17 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-I",
+      "include/",
+      "-O3",
+      "-o",
+      "build/sim_anneal",
+      "src/main.cpp"
+    ],
+    "directory": "/Users/aaronslobodin/github/sim_anneal/cpp",
+    "file": "/Users/aaronslobodin/github/sim_anneal/cpp/src/main.cpp",
+    "output": "/Users/aaronslobodin/github/sim_anneal/cpp/build/sim_anneal"
+  }
+]
