@@ -20,7 +20,7 @@ double consider_neighbor_states(const std::vector<std::vector<double>> &Q,
                                 const double beta, Random rng) {
   /*/
    *    Given state x, consider neighboring states obtained by flipping
-   *    each node. Accept neighboring states based on Metropolis-Hasting rule.
+   *    each node.
    *
    *    Args:
    *        Q: quadratic matrix
@@ -82,7 +82,7 @@ double energy(const std::vector<std::vector<double>> &Q, const int n,
   return value;
 }
 
-std::vector<bool> sim_anneal(Qubo &qubo) {
+std::vector<bool> sim_anneal(Dense_qubo &qubo) {
   /*/
    *   From random starting state, preform simulated anneal.
    *

@@ -20,7 +20,7 @@ public:
   }
 };
 
-class Qubo {
+class Dense_qubo {
 public:
   std::vector<std::vector<double>> Q;
   int n;
