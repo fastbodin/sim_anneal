@@ -3,10 +3,8 @@ from numpy.typing import NDArray
 import math
 import networkx as nx
 import matplotlib.pyplot as plt
-import sys
 
-# sys.path.append("../../src/")
-import qubo_dense_solver as qds
+from sim_anneal import qubo_dense_solver as qds
 import tsp
 
 
@@ -87,7 +85,7 @@ def main():
     Q = tsp.get_qubo_matrix(n, dists)  # QUBO matrix given instance of TSP
     np.savetxt("Q_matrix", Q, delimiter=" ")
 
-    num_res = 100
+    num_res = 1
     num_iters = 100000
     temp = np.exp(-0.5 * np.linspace(0, 10, num_iters))
     beta_sched = 1 / temp
