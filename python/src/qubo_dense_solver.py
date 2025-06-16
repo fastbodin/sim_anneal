@@ -31,7 +31,7 @@ def consider_neighbor_states(
     for i in range(n):
         # Accept or decline candidate state by the Metropolis-Hasting rule.
         if (d_energy[i] <= 0 | (np.random.random() <
-                                np.exp(-d_energy[i]*beta))):
+                                np.exp(-d_energy[i] * beta))):
             x[i] = x[i] ^ True  # flip of spin of node
             x_energy += d_energy[i]
             term_sign = (2 * x[i] - 1)
