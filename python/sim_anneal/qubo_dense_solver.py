@@ -98,7 +98,6 @@ def input_check(
     Q: NDArray[np.float64],
     num_res: int,
     num_iters: int,
-    beta_sched: NDArray[np.float64],
 ) -> None:
     """
     Check inputs of simulated anneal.
@@ -115,14 +114,10 @@ def input_check(
     if not isinstance(num_iters, int) or num_iters < 1:
         raise ValueError("num_iters is not positive integer")
 
-    if len(beta_sched) != num_iters:
-        raise ValueError("beta_sched is incorrect length")
-
 
 def qubo_solve(
     Q: NDArray[np.float64],
     num_res: int,
-    num_iters: int,
     beta_sched: NDArray[np.float64],
 ) -> NDArray[np.bool_]:
     """
@@ -139,9 +134,10 @@ def qubo_solve(
         minimum energy state found
     """
 
-    input_check(Q, num_res, num_iters, beta_sched)
-
     n = Q.shape[0]
+    num_iters = beta_sched.shape[0]
+    input_check(Q, num_res, num_iters)
+
     min_energy_state = np.empty(n, dtype=np.bool_)
     min_energy = float("inf")
     x = np.empty(n, dtype=np.bool_)

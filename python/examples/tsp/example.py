@@ -9,10 +9,9 @@ def main():
 
     run_data = np.loadtxt("../../../examples/tsp/output/run_data")
     num_res = int(run_data[1])
-    num_iters = int(run_data[2])
 
     # solve and output solution
-    x = qds.qubo_solve(Q, num_res, num_iters, beta_sched)
+    x = qds.qubo_solve(Q, num_res, beta_sched)
     np.savetxt("output/solution", x, delimiter=" ", fmt="%d")
 
 
