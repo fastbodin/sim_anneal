@@ -1,11 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
-import math
 import networkx as nx
 import matplotlib.pyplot as plt
-
-from sim_anneal import qubo_dense_solver as qds
-import tsp
 
 
 def draw_graph(
@@ -42,7 +38,7 @@ def draw_graph(
     plt.axis("off")
     plt.title("Tour Cost: {}".format(cost), fontsize=14)
     plt.tight_layout()
-    plt.savefig("tsp_sol.png", dpi=300)
+    plt.savefig("solution/tsp_sol.png", dpi=300)
     plt.close()
 
 
@@ -61,45 +57,20 @@ def read_sol(
             city, tour_step = get_city_and_tour_step(n, i)
             tour[tour_step] = city
 
-    print("Tour: {}".format(tour))
     cost = sum(dists[tour[i]][tour[(i + 1) % n]] for i in range(n))
-    print("Distance: {}".format(cost))
+    # print("Tour: {}".format(tour))
+    # print("Distance: {}".format(cost))
     return tour, cost
 
 
-# return distance between cities u and v
-def get_dist(
-    u: int, v: int, x_cor: NDArray[np.float64], y_cor: NDArray[np.float64]
-):
-    return math.sqrt((x_cor[u] - x_cor[v]) ** 2 + (y_cor[u] - y_cor[v]) ** 2)
-
-
 def main():
-    np.random.seed(seed=21)  # seed random number generator
-    n = 12  # number of cities
-    x_cor, y_cor = np.random.rand(n), np.random.rand(n)  # coordinates of cities
-    # distance between cities
-    dists = np.array(
-        [[get_dist(u, v, x_cor, y_cor) for v in range(n)] for u in range(n)]
-    )
-    Q = tsp.get_qubo_matrix(n, dists)  # QUBO matrix given instance of TSP
-    np.savetxt("Q_matrix", Q, delimiter=" ")
+    x_cor = np.loadtxt("output/x_cor")
+    y_cor = np.loadtxt("output/y_cor")
+    dists = np.loadtxt("output/distances")
+    n = len(x_cor)
 
-    num_res = 1
-    num_iters = 100000
-    temp = np.exp(-0.5 * np.linspace(0, 10, num_iters))
-    beta_sched = 1 / temp
-    np.savetxt("beta_sched", beta_sched, delimiter=" ")
+    x = np.loadtxt("../../python/examples/tsp/output/solution").astype(np.bool_)
 
-    # fig, axs = plt.subplots(1, 2)
-    # axs[0].plot(np.linspace(0, 10, num_iters), temp, color = 'blue')
-    # axs[0].set_title("Temp")
-    # axs[1].plot(np.linspace(0, 10, num_iters), beta_sched, color = 'red')
-    # axs[1].set_title("Beta")
-    # plt.show()
-
-    # run simulated annealing
-    x = qds.qubo_solve(Q, num_res, num_iters, beta_sched)
     tour, cost = read_sol(n, x, dists)
     draw_graph(x_cor, y_cor, tour, n, cost)
 

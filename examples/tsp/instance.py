@@ -2,7 +2,7 @@ import numpy as np
 import math
 from matplotlib import pyplot as plt
 
-import tsp_matrix
+import make_matrix
 
 
 def get_dist(
@@ -34,7 +34,11 @@ def main():
             for u in range(n)
         ]
     )
-    Q = tsp_matrix.construct_qubo_matrix(n, dists)
+    np.savetxt("output/x_cor", x_cor, delimiter=" ")
+    np.savetxt("output/y_cor", y_cor, delimiter=" ")
+    np.savetxt("output/distances", dists, delimiter=" ")
+
+    Q = make_matrix.construct_qubo_matrix(n, dists)
     np.savetxt("output/QUBO_matrix", Q, delimiter=" ")
 
     num_iters = 100000
