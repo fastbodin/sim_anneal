@@ -1,64 +1,88 @@
 #include "include.h"
-#include <vector>
 
-bool accept_neighbor_state(const double delta_energy, const double beta,
+bool accept_neighbor_state(const double d_energy, const double beta,
                            Random rng) {
   /*/
-   * Accept state given delta energy and beta by the Metropolis-Hasting rule.
+   * Accept state by the Metropolis-Hasting rule.
+   *
+   * Args:
+   * 	d_energy: Delta energy of candidate state.
+   *    beta: 1/temperature for iteration.
+   *   	rng: Random number generator.
+   *
+   * Returns
+   * 	Truth value of statement 'accept neighboring state.'
    */
-  if (delta_energy <= 0)
-    return true;
-  // accept state with probability equal to Boltzmann factor
-  return (rng.getprob() < std::exp(-delta_energy * beta));
+  return (d_energy <= 0) || (rng.getprob() < std::exp(-d_energy * beta));
 }
 
-void consider_neighbor_states(const Dense_Qubo &qubo, State &state,
+void consider_neighbor_states(const Dense_qubo &model, Sol_state &sol,
                               const double beta, Random &rng) {
   /*/
+   * Given state x, consider neighboring states obtained by flipping
+   * each node. Accept neighboring states based on Metropolis-Hasting rule.
+   *
+   * Args:
+   *   	model: Instance of quadratic unconstrained binary optimization problem.
+   *   	sol: Solution state.
+   *    beta: 1/temperature for iteration.
+   *   	rng: Random number generator.
    */
-  for (int i = 0; i < qubo.n; ++i) {
-    if (accept_neighbor_state(state.d_energies[i], beta, rng)) {
-      state.x[i] = !state.x[i]; // flip of spin of node
-      state.energy += state.d_energies[i];
-      // update delta energies
-      for (int j = 0; j < qubo.n; ++j) {
+
+  for (int i = 0; i < model.n; ++i) {
+    if (accept_neighbor_state(sol.d_energy[i], beta, rng)) {
+      sol.x[i] = !sol.x[i];               // flip of spin of node
+      sol.energy += sol.d_energy[i];      // update state energy
+      int term_sign = (2 * sol.x[i] - 1); // for updating delta energies
+
+      for (int j = 0; j < model.n; ++j) {
         if (j != i) {
-          // Given the jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j]
-          // computed prior to flipping the spin of node i, we can
-          // update it to reflect this flip by adding the change to
-          // the term x[i] * x[j] in xQx^T
-          state.d_energies[j] +=
-              ((2 - 4 * state.x[j]) * (2 * state.x[i] - 1) * qubo.Q[i][j]);
+          // Given jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j] computed prior
+          // to flipping the spin of node i, it suffices to add the change to
+          // the term x[i] * x[j]
+          sol.d_energy[j] += term_sign * ((2 - 4 * sol.x[j]) * model.Q[i][j]);
         }
       }
-      state.d_energies[i] *= -1; // flipping spin of ith node simply flips sign
+      sol.d_energy[i] *= -1; // re-flipping spin of node i simply flips sign
     }
   }
 }
 
-State sim_anneal(const Dense_Qubo &qubo, const double beta, Random &rng) {
+Sol_state sim_anneal(const Dense_qubo &model, Random &rng) {
   /*/
-   *   From random starting state, preform simulated anneal.
+   *   From random starting sol, preform simulated anneal.
    *
    *   Args:
-   *   	qubo: Instance of Quadratic Unconstrained Binary Optimization.
+   *   	model: Instance of quadratic unconstrained binary optimization.
    *   	rng: Random number generator.
    *
    *   Returns:
-   *   	state: Minimum energy state found in simulated anneal.
+   *   	sol: Minimum energy sol found in simulated anneal.
    */
-  State state(qubo.n, rng);
-  state.compute_energy(qubo.Q);
-  state.compute_d_energies(qubo.Q);
-  for (int i = 0; i < qubo.num_iters; ++i) {
-    consider_neighbor_states(qubo, state, beta, rng);
+  Sol_state sol(model.n, rng); // Initialize random start state.
+  sol.compute_energy(model.Q);
+  sol.compute_delta_energies(model.Q);
+  for (int i = 0; i < model.num_iterations; ++i) {
+    consider_neighbor_states(model, sol, model.beta_schedule[i], rng);
   }
-  return state;
+  return sol;
 }
 
 int main(int argc, char *argv[]) {
-  Random rng; // random number generator
-  for (int i = 0; i <= 10; ++i) {
-    std::cout << rng.getprob() << std::endl;
+  Random rng;                                       // random number generator
+  Dense_qubo model = read_qubo(std::atoi(argv[1]),  // # of variables
+                               std::atoi(argv[2]),  // # of restarts
+                               std::atoi(argv[3])); // # of iterations
+
+  Sol_state best_sol(model.n, rng);
+  best_sol.energy = std::numeric_limits<double>::infinity();
+
+  for (int i = 0; i < model.num_restarts; ++i) {
+    Sol_state restart_sol = sim_anneal(model, rng);
+    if (restart_sol.energy < best_sol.energy) {
+      best_sol = restart_sol;
+      std::cout << best_sol.energy << std::endl;
+    }
   }
+  std::cout << best_sol.energy << std::endl;
 }

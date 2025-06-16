@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <random>
 #include <vector>
 
@@ -9,33 +10,35 @@ public:
   Random() : gen(2) {} // set seed for testing purpose
   // Random() : gen(std::random_device{}()) {}
 
-  double getprob() {
+  double getprob() { // random value between 0 and 1
     std::uniform_real_distribution<> dist(0.0, 1.0);
     return dist(gen);
   }
 
-  bool getbool() {
+  bool getbool() { // random bool
     std::bernoulli_distribution dist(0.5);
     return dist(gen);
   }
 };
 
-class Dense_Qubo {
+class Dense_qubo {
 public:
   std::vector<std::vector<double>> Q;
   int n;
-  int num_iters;
-  std::vector<double> beta_sched;
+  int num_restarts;
+  int num_iterations;
+  std::vector<double> beta_schedule;
 };
 
-class State {
+class Sol_state {
 public:
-  std::vector<bool> x;
-  int n;
-  double energy;
-  std::vector<double> d_energies;
+  std::vector<bool> x;          // solution state vector
+  int n;                        // size of x
+  double energy;                // energy of state
+  std::vector<double> d_energy; // delta energies of neighbour states
 
-  State(int size, Random &rng) : n(size), x(size), d_energies(size) {
+  Sol_state(const int size, Random &rng) : n(size), x(size), d_energy(size) {
+    // When initialized, pick a random starting state
     for (int i = 0; i < n; ++i) {
       x[i] = rng.getbool();
     }
@@ -51,18 +54,22 @@ public:
     }
   }
 
-  /*/
-   * Compute the delta energy if the ith bit of the state vector x is flipped.
-   * Given symmetric matrix Q and boolean vector e such that
-   * (x + e = x with ith bit flipped), this is computed as follows:
-   * (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i,i].
-   */
-  void compute_d_energies(const std::vector<std::vector<double>> &Q) {
+  // Compute the delta energy if the ith bit of x is flipped. Given symmetric
+  // matrix Q and boolean vectors x and e such that x + e = (x with ith bit
+  // flipped), the delta energy is given by:
+  // (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i,i]
+  void compute_delta_energies(const std::vector<std::vector<double>> &Q) {
     for (int i = 0; i < n; ++i) {
-      d_energies[i] = Q[i][i];
+      d_energy[i] = Q[i][i];
       for (int j = 0; j < n; ++j) {
-        d_energies[i] += 2 * (1 - 2 * x[i]) * Q[i][j] * x[j];
+        d_energy[i] += 2 * (1 - 2 * x[i]) * Q[i][j] * x[j];
       }
     }
   }
 };
+
+// From read_and_print.cpp
+void throw_error(std::string error_message);
+void check_qubo(Dense_qubo &model);
+Dense_qubo read_qubo(const int n, const int num_restarts,
+                     const int num_iterations);

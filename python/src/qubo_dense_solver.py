@@ -30,34 +30,34 @@ def consider_neighbor_states(
 
     for i in range(n):
         # Accept or decline candidate state by the Metropolis-Hasting rule.
-        if (d_energy[i] <= 0 | (np.random.random() <
-                                np.exp(-d_energy[i] * beta))):
+        if d_energy[i] <= 0 | (
+            np.random.random() < np.exp(-d_energy[i] * beta)
+        ):
             x[i] = x[i] ^ True  # flip of spin of node
             x_energy += d_energy[i]
-            term_sign = (2 * x[i] - 1)
+            term_sign = 2 * x[i] - 1
 
-            for j in range(n): # update delta energies
+            for j in range(n):  # update delta energies
                 if j != i:
                     # Given jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j]
                     # computed prior to flipping the spin of node i, it
                     # suffices to add the change to the term x[i] * x[j]
-                    d_energy[j] += ((2 - 4 * x[j]) * term_sign * Q[i, j])
-            d_energy[i] *= -1 # re-flipping spin of node i simply flips sign
+                    d_energy[j] += (2 - 4 * x[j]) * term_sign * Q[i, j]
+            d_energy[i] *= -1  # re-flipping spin of node i simply flips sign
     return x_energy
 
 
 def delta_energy(Q: NDArray[np.float64], x: NDArray[np.bool_], i: int) -> float:
     """
-    Compute the delta energy: (candidate energy) - (current energy) if the ith
-    bit of x is flipped.
-
-    Given symmetric matrix Q, boolean vector x, and boolean vector e
-    such that x + e = (x with ith bit flipped), the delta energy is given by:
+    Compute the delta energy if the ith bit of x is flipped. Given symmetric
+    matrix Q and boolean vectors x and e such that x + e = (x with ith bit
+    flipped), the delta energy is given by:
 
     (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i,i]
     """
 
     return (2 - 4 * x[i]) * np.matmul(x, Q[i]) + Q[i, i]
+
 
 def sim_anneal(
     Q: NDArray[np.float64],
@@ -80,7 +80,7 @@ def sim_anneal(
     """
 
     x = np.random.randint(2, size=n, dtype=np.bool_)
-    x_energy = np.matmul(np.matmul(x, Q), x) # xQx^T
+    x_energy = np.matmul(np.matmul(x, Q), x)  # xQx^T
     # delta energies of neighboring states
     d_energy = np.array(
         [delta_energy(Q, x, i) for i in range(n)], dtype=np.float64
@@ -154,4 +154,5 @@ def qubo_solve(
             min_energy_state = np.copy(x)
             min_energy = x_energy
 
+    print(min_energy)
     return min_energy_state

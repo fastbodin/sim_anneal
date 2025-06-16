@@ -85,11 +85,13 @@ def main():
         [[get_dist(u, v, x_cor, y_cor) for v in range(n)] for u in range(n)]
     )
     Q = tsp.get_qubo_matrix(n, dists)  # QUBO matrix given instance of TSP
+    np.savetxt("Q_matrix", Q, delimiter=" ")
 
-    num_res = 1000
+    num_res = 10
     num_iters = 10000
     temp = np.exp(-0.5 * np.linspace(0, 10, num_iters))
     beta_sched = 1 / temp
+    np.savetxt("beta_sched", beta_sched, delimiter=" ")
 
     # fig, axs = plt.subplots(1, 2)
     # axs[0].plot(np.linspace(0, 10, num_iters), temp, color = 'blue')
