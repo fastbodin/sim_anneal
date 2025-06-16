@@ -7,10 +7,10 @@
 class Random {
   std::mt19937 gen; // Standard mersenne_twister_engine
 public:
-  Random() : gen(2) {} // set seed for testing purpose
-  // Random() : gen(std::random_device{}()) {}
+  // Random() : gen(2) {} // set seed for testing purpose
+  Random() : gen(std::random_device{}()) {}
 
-  double getprob() { // random value between 0 and 1
+  double getprob() { // random real between 0 and 1
     std::uniform_real_distribution<> dist(0.0, 1.0);
     return dist(gen);
   }
@@ -21,8 +21,7 @@ public:
   }
 };
 
-class Dense_qubo {
-public:
+struct Dense_qubo {
   std::vector<std::vector<double>> Q;
   int n;
   int num_restarts;
@@ -30,8 +29,7 @@ public:
   std::vector<double> beta_schedule;
 };
 
-class Sol_state {
-public:
+struct Sol_state {
   std::vector<bool> x;          // solution state vector
   int n;                        // size of x
   double energy;                // energy of state

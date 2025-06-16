@@ -1,25 +1,9 @@
 #include "include.h"
 
-bool accept_neighbor_state(const double d_energy, const double beta,
-                           Random rng) {
-  /*/
-   * Accept state by the Metropolis-Hasting rule.
-   *
-   * Args:
-   * 	d_energy: Delta energy of candidate state.
-   *    beta: 1/temperature for iteration.
-   *   	rng: Random number generator.
-   *
-   * Returns
-   * 	Truth value of statement 'accept neighboring state.'
-   */
-  return (d_energy <= 0) || (rng.getprob() < std::exp(-d_energy * beta));
-}
-
 void consider_neighbor_states(const Dense_qubo &model, Sol_state &sol,
                               const double beta, Random &rng) {
   /*/
-   * Given state x, consider neighboring states obtained by flipping
+   * Given state, consider neighboring states obtained by flipping
    * each node. Accept neighboring states based on Metropolis-Hasting rule.
    *
    * Args:
@@ -28,12 +12,16 @@ void consider_neighbor_states(const Dense_qubo &model, Sol_state &sol,
    *    beta: 1/temperature for iteration.
    *   	rng: Random number generator.
    */
+  int term_sign;
 
   for (int i = 0; i < model.n; ++i) {
-    if (accept_neighbor_state(sol.d_energy[i], beta, rng)) {
-      sol.x[i] = !sol.x[i];               // flip of spin of node
-      sol.energy += sol.d_energy[i];      // update state energy
-      int term_sign = (2 * sol.x[i] - 1); // for updating delta energies
+    // Accept or decline state by the Metropolis-Hasting rule.
+    if ((sol.d_energy[i] <= 0) ||
+        (rng.getprob() < std::exp(-sol.d_energy[i] * beta))) {
+
+      sol.x[i] = !sol.x[i];           // flip of spin of node
+      sol.energy += sol.d_energy[i];  // update state energy
+      term_sign = (2 * sol.x[i] - 1); // for updating delta energies
 
       for (int j = 0; j < model.n; ++j) {
         if (j != i) {
@@ -79,10 +67,11 @@ int main(int argc, char *argv[]) {
   best_sol.energy = std::numeric_limits<double>::infinity();
 
   for (int i = 0; i < model.num_restarts; ++i) {
-    Sol_state restart_sol = sim_anneal(model, rng);
-    if (restart_sol.energy < best_sol.energy) {
-      best_sol.x = restart_sol.x;
-      best_sol.energy = restart_sol.energy;
+    Sol_state sol = sim_anneal(model, rng);
+    // if improved solution is found
+    if (sol.energy < best_sol.energy) {
+      best_sol.x = sol.x;
+      best_sol.energy = sol.energy;
     }
   }
   std::cout << best_sol.energy << std::endl;
