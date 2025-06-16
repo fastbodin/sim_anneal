@@ -36,7 +36,8 @@ void consider_neighbor_states(const Dense_qubo &model, Solution_state &sol,
   }
 }
 
-Solution_state sim_anneal(const Dense_qubo &model, Random &rng) {
+void sim_anneal(const Dense_qubo &model, Random &rng,
+                Solution_state &best_sol) {
   /*/
    *   From random starting solution, preform simulated anneal.
    *
@@ -54,7 +55,11 @@ Solution_state sim_anneal(const Dense_qubo &model, Random &rng) {
   for (int i = 0; i < model.num_iterations; ++i) {
     consider_neighbor_states(model, sol, model.beta_schedule[i], rng);
   }
-  return sol;
+
+  if (sol.energy < best_sol.energy) {
+    best_sol.x = sol.x;
+    best_sol.energy = sol.energy;
+  }
 }
 
 int main(const int argc, const char *argv[]) {
@@ -72,16 +77,11 @@ int main(const int argc, const char *argv[]) {
   Random rng; // Random number generator
 
   Dense_qubo model = read_qubo_model(argv);
-  Solution_state best_sol(model.n), sol(model.n);
+  Solution_state best_sol(model.n);
   best_sol.energy = std::numeric_limits<double>::infinity();
 
   for (int i = 0; i < model.num_restarts; ++i) {
-    sol = sim_anneal(model, rng);
-
-    if (sol.energy < best_sol.energy) { // if improved solution is found
-      best_sol.x = sol.x;
-      best_sol.energy = sol.energy;
-    }
+    sim_anneal(model, rng, best_sol);
   }
   print_solution(best_sol);
 }
