@@ -4,14 +4,6 @@ from numba import njit
 
 
 @njit
-def boltzmann_factor(delta_energy: float, beta: float) -> float:
-    """
-    Compute Boltzmann factor given delta energy and beta.
-    """
-    return np.exp(-delta_energy * beta)
-
-
-@njit
 def accept_neighbor_state(delta_energy: float, beta: float) -> bool:
     """
     Accept or decline candidate state given delta energy and beta schedule by
@@ -20,7 +12,7 @@ def accept_neighbor_state(delta_energy: float, beta: float) -> bool:
     if delta_energy <= 0:
         return True
     # accept state with probability equal to Boltzmann factor
-    return np.random.random() < boltzmann_factor(delta_energy, beta)
+    return np.random.random() < np.exp(-delta_energy * beta)
 
 
 @njit
@@ -80,14 +72,6 @@ def delta_energy(Q: NDArray[np.float64], x: NDArray[np.bool_], i: int) -> float:
 
     return (2 - 4 * x[i]) * np.matmul(x, Q[i]) + Q[i, i]
 
-
-def energy(Q: NDArray[np.float64], x: NDArray[np.bool_]) -> float:
-    """
-    Compute: (x Q x^T) given matrix Q and vector x.
-    """
-    return np.matmul(np.matmul(x, Q), x)
-
-
 def sim_anneal(
     Q: NDArray[np.float64],
     n: int,
@@ -109,7 +93,8 @@ def sim_anneal(
     """
 
     x = np.random.randint(2, size=n, dtype=np.bool_)
-    x_energy = energy(Q, x)
+    # Compute: (x Q x^T) given matrix Q and vector x.
+    x_energy = np.matmul(np.matmul(x, Q), x)
     # delta energies of neighboring states
     d_energies = np.array(
         [delta_energy(Q, x, i) for i in range(n)], dtype=np.float64

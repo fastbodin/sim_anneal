@@ -6,17 +6,6 @@ sys.path.append("../src/")
 import qubo_dense_solver as qds
 
 
-def boltzmann_factor_test():
-    # should be 0.36787944117144233
-    bolt_f = qds.boltzmann_factor(1, 1)
-    if bolt_f >= 0.3678795 or bolt_f <= 0.3678793:
-        raise ValueError("Incorrect boltzmann factor")
-    # should be 0.0889216174593863
-    bolt_f = qds.boltzmann_factor(2.2, 1.1)
-    if bolt_f >= 0.088921618 or bolt_f <= 0.088921616:
-        raise ValueError("Incorrect boltzmann factor")
-
-
 def accept_neighbor_state_test():
     if not qds.accept_neighbor_state(0, 0.1):
         raise ValueError("Incorrect decision")
@@ -56,14 +45,6 @@ def delta_energy_test():
         raise ValueError("Incorrect delta energy computation")
 
 
-def energy_test():
-    Q = np.array([[0, 1, 1], [1, 1, 0], [1, 0, 1]])
-    if qds.energy(Q, np.array([1, 1, 0], dtype=np.bool_)) != 3:
-        raise ValueError("Incorrect energy computation")
-    if qds.energy(Q, np.array([1, 1, 1], dtype=np.bool_)) != 6:
-        raise ValueError("Incorrect energy computation")
-
-
 def qubo_solve_test():
     n = 20
     Q = np.identity(n)
@@ -80,11 +61,8 @@ def qubo_solve_test():
 
 
 def main():
-    boltzmann_factor_test()
     accept_neighbor_state_test()
-
     delta_energy_test()
-    energy_test()
     qubo_solve_test()
 
     print("Unit tests complete")
