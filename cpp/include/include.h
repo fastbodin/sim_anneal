@@ -29,14 +29,15 @@ struct Dense_qubo {
   std::vector<double> beta_schedule;
 };
 
-struct Sol_state {
+struct Solution_state {
   std::vector<bool> x;          // solution state vector
   int n;                        // size of x
   double energy;                // energy of state
   std::vector<double> d_energy; // delta energies of neighbour states
 
-  Sol_state(const int size, Random &rng) : n(size), x(size), d_energy(size) {
-    // When initialized, pick a random starting state
+  Solution_state(const int size) : n(size), x(size), d_energy(size){};
+
+  void randomize_x(Random &rng) {
     for (int i = 0; i < n; ++i) {
       x[i] = rng.getbool();
     }
@@ -67,7 +68,7 @@ struct Sol_state {
 };
 
 // From read_and_print.cpp
-void throw_error(std::string error_message);
-void check_qubo(Dense_qubo &model);
-Dense_qubo read_qubo(const int n, const int num_restarts,
-                     const int num_iterations);
+void throw_error(const std::string error_message);
+void check_qubo_model(const Dense_qubo &model);
+Dense_qubo read_qubo_model(const char *argv[]);
+void print_solution(const Solution_state &sol);

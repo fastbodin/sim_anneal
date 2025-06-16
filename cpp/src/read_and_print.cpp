@@ -1,11 +1,10 @@
 #include "include.h"
 
-// For error reporting
-void throw_error(std::string error_message) {
+void throw_error(const std::string error_message) {
   throw std::runtime_error(error_message);
 }
 
-void check_qubo(Dense_qubo &model) {
+void check_qubo_model(const Dense_qubo &model) {
   if (model.n <= 0) {
     throw_error("Invalid n = " + std::to_string(model.n));
   }
@@ -29,18 +28,17 @@ void check_qubo(Dense_qubo &model) {
   }
 }
 
-Dense_qubo read_qubo(const int n, const int num_restarts,
-                     const int num_iterations) {
+Dense_qubo read_qubo_model(const char *argv[]) {
   Dense_qubo model;
-  model.n = n;
-  model.num_restarts = num_restarts;
-  model.num_iterations = num_iterations;
+  model.n = std::atoi(argv[1]);
+  model.num_restarts = std::atoi(argv[2]),
+  model.num_iterations = std::atoi(argv[3]);
 
   // Fill matrix Q
-  model.Q.resize(n);
-  for (int i = 0; i < n; ++i) {
-    model.Q[i].resize(n);
-    for (int j = 0; j < n; ++j) {
+  model.Q.resize(model.n);
+  for (int i = 0; i < model.n; ++i) {
+    model.Q[i].resize(model.n);
+    for (int j = 0; j < model.n; ++j) {
       if (!(std::cin >> model.Q[i][j])) {
         throw_error("Failed to assign value to Q[" + std::to_string(i) + "][" +
                     std::to_string(j) + "] when reading qubo matrix.");
@@ -57,6 +55,14 @@ Dense_qubo read_qubo(const int n, const int num_restarts,
     }
   }
 
-  check_qubo(model); // sanity check inputs
+  check_qubo_model(model); // sanity check inputs
   return model;
+}
+
+void print_solution(const Solution_state &sol) {
+  std::cout << sol.energy << std::endl;
+  for (int i = 0; i < sol.n; ++i) {
+    std::cout << sol.x[i] << ' ';
+  }
+  std::cout << std::endl;
 }

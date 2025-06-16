@@ -1,6 +1,6 @@
 #include "include.h"
 
-void consider_neighbor_states(const Dense_qubo &model, Sol_state &sol,
+void consider_neighbor_states(const Dense_qubo &model, Solution_state &sol,
                               const double beta, Random &rng) {
   /*/
    * Given state, consider neighboring states obtained by flipping
@@ -36,9 +36,9 @@ void consider_neighbor_states(const Dense_qubo &model, Sol_state &sol,
   }
 }
 
-Sol_state sim_anneal(const Dense_qubo &model, Random &rng) {
+Solution_state sim_anneal(const Dense_qubo &model, Random &rng) {
   /*/
-   *   From random starting sol, preform simulated anneal.
+   *   From random starting solution, preform simulated anneal.
    *
    *   Args:
    *   	model: Instance of quadratic unconstrained binary optimization.
@@ -47,7 +47,8 @@ Sol_state sim_anneal(const Dense_qubo &model, Random &rng) {
    *   Returns:
    *   	sol: Minimum energy sol found in simulated anneal.
    */
-  Sol_state sol(model.n, rng); // Initialize random start state.
+  Solution_state sol(model.n);
+  sol.randomize_x(rng);
   sol.compute_energy(model.Q);
   sol.compute_delta_energies(model.Q);
   for (int i = 0; i < model.num_iterations; ++i) {
@@ -56,23 +57,31 @@ Sol_state sim_anneal(const Dense_qubo &model, Random &rng) {
   return sol;
 }
 
-int main(int argc, char *argv[]) {
+int main(const int argc, const char *argv[]) {
+  /*/
+   *   Preform simulated anneal.
+   *
+   *   Args:
+   *   	int argv[1] = n = # of variables in model
+   *   	int argv[2] = desired # of restarts
+   *   	int argv[3] = desired # of iterations per restart
+   *
+   *   	QUBO (nxn)-matrix is piped to program
+   *   	(1xn)-vector beta schedule is piped to program
+   */
   Random rng; // Random number generator
 
-  Dense_qubo model = read_qubo(std::atoi(argv[1]),  // # of variables
-                               std::atoi(argv[2]),  // # of restarts
-                               std::atoi(argv[3])); // # of iterations
-
-  Sol_state best_sol(model.n, rng);
+  Dense_qubo model = read_qubo_model(argv);
+  Solution_state best_sol(model.n), sol(model.n);
   best_sol.energy = std::numeric_limits<double>::infinity();
 
   for (int i = 0; i < model.num_restarts; ++i) {
-    Sol_state sol = sim_anneal(model, rng);
-    // if improved solution is found
-    if (sol.energy < best_sol.energy) {
+    sol = sim_anneal(model, rng);
+
+    if (sol.energy < best_sol.energy) { // if improved solution is found
       best_sol.x = sol.x;
       best_sol.energy = sol.energy;
     }
   }
-  std::cout << best_sol.energy << std::endl;
+  print_solution(best_sol);
 }
