@@ -154,5 +154,5 @@ def qubo_solve(
             min_energy_state = np.copy(x)
             min_energy = x_energy
 
-    print(min_energy)
+    print(np.matmul(np.matmul(min_energy_state, Q), min_energy_state))
     return min_energy_state

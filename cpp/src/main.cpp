@@ -69,7 +69,8 @@ Sol_state sim_anneal(const Dense_qubo &model, Random &rng) {
 }
 
 int main(int argc, char *argv[]) {
-  Random rng;                                       // random number generator
+  Random rng; // Random number generator
+
   Dense_qubo model = read_qubo(std::atoi(argv[1]),  // # of variables
                                std::atoi(argv[2]),  // # of restarts
                                std::atoi(argv[3])); // # of iterations
@@ -80,8 +81,8 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < model.num_restarts; ++i) {
     Sol_state restart_sol = sim_anneal(model, rng);
     if (restart_sol.energy < best_sol.energy) {
-      best_sol = restart_sol;
-      std::cout << best_sol.energy << std::endl;
+      best_sol.x = restart_sol.x;
+      best_sol.energy = restart_sol.energy;
     }
   }
   std::cout << best_sol.energy << std::endl;

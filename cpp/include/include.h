@@ -48,8 +48,8 @@ public:
   void compute_energy(const std::vector<std::vector<double>> &Q) {
     energy = 0;
     for (int i = 0; i < n; ++i) {
-      for (int j = i + 1; j < n; ++j) {
-        energy += 2 * Q[i][j] * x[i] * x[j];
+      for (int j = 0; j < n; ++j) {
+        energy += Q[i][j] * x[i] * x[j];
       }
     }
   }

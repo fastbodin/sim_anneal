@@ -23,6 +23,7 @@ void check_qubo(Dense_qubo &model) {
     for (int j = 0; j < model.n; ++j) {
       if ((model.Q[i][j] + epsilon < model.Q[j][i]) ||
           (model.Q[i][j] - epsilon > model.Q[j][i])) {
+        throw_error("Matrix Q is not symmetric");
       }
     }
   }
@@ -56,6 +57,6 @@ Dense_qubo read_qubo(const int n, const int num_restarts,
     }
   }
 
-  check_qubo(model);
+  check_qubo(model); // sanity check inputs
   return model;
 }
