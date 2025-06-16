@@ -66,17 +66,17 @@ int main(const int argc, const char *argv[]) {
   /*/
    *   Preform simulated anneal.
    *
-   *   Args:
-   *   	int argv[1] = n = # of variables in model
-   *   	int argv[2] = desired # of restarts
-   *   	int argv[3] = desired # of iterations per restart
+   *   Command line args:
+   *   	pipe in # of variables in model
+   *   	pipe in desired # of restarts
+   *   	pipe in desired # of iterations per restart
    *
    *   	QUBO (nxn)-matrix is piped to program
    *   	(1xn)-vector beta schedule is piped to program
    */
   Random rng; // Random number generator
 
-  Dense_qubo model = read_qubo_model(argv);
+  Dense_qubo model = read_qubo_model();
   Solution_state best_sol(model.n);
   best_sol.energy = std::numeric_limits<double>::infinity();
 

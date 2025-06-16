@@ -10,6 +10,7 @@ def draw_graph(
     tour: NDArray[np.int_],
     n: int,
     cost: float,
+    lang: str,
 ) -> None:
     G = nx.DiGraph()
 
@@ -38,7 +39,7 @@ def draw_graph(
     plt.axis("off")
     plt.title("Tour Cost: {}".format(cost), fontsize=14)
     plt.tight_layout()
-    plt.savefig("solution/tsp_sol.png", dpi=300)
+    plt.savefig("solution/tsp_sol_{}.png".format(lang), dpi=300)
     plt.close()
 
 
@@ -58,8 +59,8 @@ def read_sol(
             tour[tour_step] = city
 
     cost = sum(dists[tour[i]][tour[(i + 1) % n]] for i in range(n))
-    # print("Tour: {}".format(tour))
-    # print("Distance: {}".format(cost))
+    print("Tour: {}".format(tour))
+    print("Distance: {}".format(cost))
     return tour, cost
 
 
@@ -69,10 +70,15 @@ def main():
     dists = np.loadtxt("output/distances")
     n = len(x_cor)
 
-    x = np.loadtxt("../../python/examples/tsp/output/solution").astype(np.bool_)
-
+    print("CPP")
+    x = np.loadtxt("../../cpp/examples/tsp/output/solution").astype(np.bool_)
     tour, cost = read_sol(n, x, dists)
-    draw_graph(x_cor, y_cor, tour, n, cost)
+    draw_graph(x_cor, y_cor, tour, n, cost, "cpp")
+
+    print("Python")
+    x = np.loadtxt("../../python/examples/tsp/output/solution").astype(np.bool_)
+    tour, cost = read_sol(n, x, dists)
+    draw_graph(x_cor, y_cor, tour, n, cost, "python")
 
 
 main()

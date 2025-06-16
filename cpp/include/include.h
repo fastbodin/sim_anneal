@@ -70,5 +70,5 @@ struct Solution_state {
 // From read_and_print.cpp
 void throw_error(const std::string error_message);
 void check_qubo_model(const Dense_qubo &model);
-Dense_qubo read_qubo_model(const char *argv[]);
+Dense_qubo read_qubo_model();
 void print_solution(const Solution_state &sol);

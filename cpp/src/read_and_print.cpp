@@ -28,11 +28,18 @@ void check_qubo_model(const Dense_qubo &model) {
   }
 }
 
-Dense_qubo read_qubo_model(const char *argv[]) {
+Dense_qubo read_qubo_model() {
   Dense_qubo model;
-  model.n = std::atoi(argv[1]);
-  model.num_restarts = std::atoi(argv[2]),
-  model.num_iterations = std::atoi(argv[3]);
+  // Read meta data
+  if (!(std::cin >> model.n)) {
+    throw_error("Failed to assign n");
+  }
+  if (!(std::cin >> model.num_restarts)) {
+    throw_error("Failed to assign # of restarts");
+  }
+  if (!(std::cin >> model.num_iterations)) {
+    throw_error("Failed to assign # of iterations");
+  }
 
   // Fill matrix Q
   model.Q.resize(model.n);
@@ -60,9 +67,8 @@ Dense_qubo read_qubo_model(const char *argv[]) {
 }
 
 void print_solution(const Solution_state &sol) {
-  std::cout << sol.energy << std::endl;
+  // std::cout << sol.energy << std::endl;
   for (int i = 0; i < sol.n; ++i) {
-    std::cout << sol.x[i] << ' ';
+    std::cout << sol.x[i] << std::endl;
   }
-  std::cout << std::endl;
 }

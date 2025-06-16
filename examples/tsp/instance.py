@@ -41,7 +41,7 @@ def main():
     Q = make_matrix.construct_qubo_matrix(n, dists)
     np.savetxt("output/QUBO_matrix", Q, delimiter=" ")
 
-    num_iters = 100000
+    num_iters = 10000
     temp = np.exp(-0.5 * np.linspace(0, 10, num_iters))
     beta_sched = 1 / temp
     np.savetxt("output/beta_schedule", beta_sched, delimiter=" ")
@@ -55,6 +55,9 @@ def main():
     plt.tight_layout()
     plt.savefig("output/beta_and_temperature.png", dpi=300)
     plt.close()
+
+    run_data = np.array([n * n, 1000, num_iters])
+    np.savetxt("output/run_data", run_data, delimiter=" ", fmt="%d")
 
 
 main()
