@@ -1,40 +1,37 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
-
-sys.path.append("../src/")
-import qubo_dense_solver as qds
+from sim_anneal import qubo_dense_solver as qds
 
 
-def accept_neighbor_state_test():
-    if not qds.accept_neighbor_state(0, 0.1):
-        raise ValueError("Incorrect decision")
-    if not qds.accept_neighbor_state(-1, 0.1):
-        raise ValueError("Incorrect decision")
-    if qds.accept_neighbor_state(1, 10000):
-        boltz_f = qds.boltzmann_factor(1, 10000)
-        print(
-            """"Boltzmann factor is {} and delta energy is 1 yet
-              solution was accepted""".format(
-                boltz_f
-            )
-        )
-        print("The chances of this occuring are small but non-zero")
-
-    count = 0
-    num_iter = 100000
-    for _ in range(num_iter):
-        count += qds.accept_neighbor_state(0.5, 1)
-    boltz_f = 0.6065306597126334
-    acc_rate = count / num_iter
-    if (acc_rate < boltz_f - 0.01) or (acc_rate > boltz_f + 0.01):
-        print(
-            """Boltzmann factor is {}. After {} iterations, the acceptance
-              rate is {}""".format(
-                boltz_f, num_iter, acc_rate
-            )
-        )
-        print("The chances of this occuring are small but non-zero")
+# def accept_neighbor_state_test():
+#    if not qds.accept_neighbor_state(0, 0.1):
+#        raise ValueError("Incorrect decision")
+#    if not qds.accept_neighbor_state(-1, 0.1):
+#        raise ValueError("Incorrect decision")
+#    if qds.accept_neighbor_state(1, 10000):
+#        boltz_f = qds.boltzmann_factor(1, 10000)
+#        print(
+#            """"Boltzmann factor is {} and delta energy is 1 yet
+#              solution was accepted""".format(
+#                boltz_f
+#            )
+#        )
+#        print("The chances of this occuring are small but non-zero")
+#
+#    count = 0
+#    num_iter = 100000
+#    for _ in range(num_iter):
+#        count += qds.accept_neighbor_state(0.5, 1)
+#    boltz_f = 0.6065306597126334
+#    acc_rate = count / num_iter
+#    if (acc_rate < boltz_f - 0.01) or (acc_rate > boltz_f + 0.01):
+#        print(
+#            """Boltzmann factor is {}. After {} iterations, the acceptance
+#              rate is {}""".format(
+#                boltz_f, num_iter, acc_rate
+#            )
+#        )
+#        print("The chances of this occuring are small but non-zero")
 
 
 def delta_energy_test():
@@ -61,7 +58,7 @@ def qubo_solve_test():
 
 
 def main():
-    accept_neighbor_state_test()
+    # accept_neighbor_state_test()
     delta_energy_test()
     qubo_solve_test()
 

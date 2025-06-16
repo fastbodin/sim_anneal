@@ -5,7 +5,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import sys
 
-sys.path.append("../../src/")
+# sys.path.append("../../src/")
 import qubo_dense_solver as qds
 import tsp
 

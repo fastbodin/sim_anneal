@@ -1,0 +1,9 @@
+[project]
+name = "sim_anneal"
+version = "0.0.1"
+dependencies = [
+  'matplotlib <= 3.10.3',
+  'networkx <= 3.4.2',
+  'numba <= 0.61.2',
+  'numpy <= 2.3.0'
+]
