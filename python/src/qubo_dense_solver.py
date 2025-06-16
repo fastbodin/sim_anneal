@@ -4,24 +4,12 @@ from numba import njit
 
 
 @njit
-def accept_neighbor_state(delta_energy: float, beta: float) -> bool:
-    """
-    Accept or decline candidate state given delta energy and beta schedule by
-    the Metropolis-Hasting rule.
-    """
-    if delta_energy <= 0:
-        return True
-    # accept state with probability equal to Boltzmann factor
-    return np.random.random() < np.exp(-delta_energy * beta)
-
-
-@njit
 def consider_neighbor_states(
     Q: NDArray[np.float64],
     n: int,
     x: NDArray[np.bool_],
     x_energy: float,
-    delta_energies: NDArray[np.float64],
+    d_energy: NDArray[np.float64],
     beta: float,
 ) -> float:
     """
@@ -33,7 +21,7 @@ def consider_neighbor_states(
         n: number of variables
         x: state vector
         x_energy: energy of current state
-        delta_energies: delta energies of neighboring states
+        d_energy: delta energies of neighboring states
         beta: 1/temperature for iteration
 
     Returns:
@@ -41,21 +29,20 @@ def consider_neighbor_states(
     """
 
     for i in range(n):
-        if accept_neighbor_state(delta_energies[i], beta):
+        # Accept or decline candidate state by the Metropolis-Hasting rule.
+        if (d_energy[i] <= 0 | (np.random.random() <
+                                np.exp(-d_energy[i]*beta))):
             x[i] = x[i] ^ True  # flip of spin of node
-            x_energy += delta_energies[i]
-            # update each delta energy after flipping spin of ith node
-            for j in range(n):
+            x_energy += d_energy[i]
+            term_sign = (2 * x[i] - 1)
+
+            for j in range(n): # update delta energies
                 if j != i:
-                    # Given the jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j]
-                    # computed prior to flipping the spin of node i, we can
-                    # update it to reflect this flip by adding the change to
-                    # the term x[i] * x[j] in xQx^T
-                    delta_energies[j] += (
-                        (2 - 4 * x[j]) * (2 * x[i] - 1) * Q[i, j]
-                    )
-            # re-flipping spin of ith node simply flips the sign
-            delta_energies[i] *= -1
+                    # Given jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j]
+                    # computed prior to flipping the spin of node i, it
+                    # suffices to add the change to the term x[i] * x[j]
+                    d_energy[j] += ((2 - 4 * x[j]) * term_sign * Q[i, j])
+            d_energy[i] *= -1 # re-flipping spin of node i simply flips sign
     return x_energy
 
 
@@ -64,8 +51,8 @@ def delta_energy(Q: NDArray[np.float64], x: NDArray[np.bool_], i: int) -> float:
     Compute the delta energy: (candidate energy) - (current energy) if the ith
     bit of x is flipped.
 
-    Given symmetric matrix Q, boolean vector x, and boolean vector e where e is
-    all zeros except the ith bit is 1-2x[i] (x + e = x with ith bit flipped)
+    Given symmetric matrix Q, boolean vector x, and boolean vector e
+    such that x + e = (x with ith bit flipped), the delta energy is given by:
 
     (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i,i]
     """
@@ -93,16 +80,15 @@ def sim_anneal(
     """
 
     x = np.random.randint(2, size=n, dtype=np.bool_)
-    # Compute: (x Q x^T) given matrix Q and vector x.
-    x_energy = np.matmul(np.matmul(x, Q), x)
+    x_energy = np.matmul(np.matmul(x, Q), x) # xQx^T
     # delta energies of neighboring states
-    d_energies = np.array(
+    d_energy = np.array(
         [delta_energy(Q, x, i) for i in range(n)], dtype=np.float64
     )
 
     for i in range(num_iters):
         x_energy = consider_neighbor_states(
-            Q, n, x, x_energy, d_energies, beta_sched[i]
+            Q, n, x, x_energy, d_energy, beta_sched[i]
         )
 
     return x, x_energy

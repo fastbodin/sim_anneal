@@ -87,8 +87,8 @@ def main():
     Q = tsp.get_qubo_matrix(n, dists)  # QUBO matrix given instance of TSP
 
     num_res = 1000
-    num_iters = 100000
-    temp = np.exp(-0.6 * np.linspace(0, 10, num_iters))
+    num_iters = 10000
+    temp = np.exp(-0.5 * np.linspace(0, 10, num_iters))
     beta_sched = 1 / temp
 
     # fig, axs = plt.subplots(1, 2)
