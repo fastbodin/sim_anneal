@@ -42,7 +42,7 @@ def consider_neighbor_states(
                     # Given jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j]
                     # computed prior to flipping the spin of node i, it
                     # suffices to add the change to the term x[i] * x[j]
-                    d_energy[j] += (2 - 4 * x[j]) * term_sign * Q[i, j]
+                    d_energy[j] += term_sign * (2 - 4 * x[j]) * Q[i, j]
             d_energy[i] *= -1  # re-flipping spin of node i simply flips sign
     return x_energy
 
@@ -154,5 +154,4 @@ def qubo_solve(
             min_energy_state = np.copy(x)
             min_energy = x_energy
 
-    print(np.matmul(np.matmul(min_energy_state, Q), min_energy_state))
     return min_energy_state
