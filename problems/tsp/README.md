@@ -66,7 +66,7 @@ contains a random TSP instance on 12 cities with the following files.
 6. QUBO_matrix <- matrix obtained from generate_tsp_matrix given TSP instance.
 7. tsp_instance.png <- visual of cities embedded on a plane.
 ```
-The example in `problem_instance/` is shown below.
+A visual of the cities in `problem_instance/` is shown below.
 
 <p align="center">
 <img src="problem_instance/tsp_instance.png"
