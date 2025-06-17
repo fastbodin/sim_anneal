@@ -5,24 +5,21 @@ This repo contains a simulated annealing algorithm to solve QUBOs.
 
 ## Python Code
 
-See `python/build/qubo_solver.py` for our implementation in Python. See
-`python/unit_test.py` for unit tests to check your Python build. Finally, see
-`python/examples` for examples of the solver in action.
+See `python/sim_anneal/` for an implementation in Python
+and `cpp/src/` for an implementation in C++.
 
 ### Requirements:
 
-The Python build code requires NumPy and was tested on Python 3.12.
+The Python build code requires NumPy and Numba and was tested on Python 3.12.
 
 ### Input:
 
-Each problem instance requires four arguments:
+Each problem instance requires three arguments:
 
 ```
 Q (n x n matrix): Quadratic matrix representing your problem.
 
-num_res (integer): Number of desired restarts.
-
-num_iters (integer): Number of iterations per restart.
+num_restarts (integer): Number of desired restarts.
 
 beta_sched (1 x n matrix): 1/temperate schedule for each iteration.
 
