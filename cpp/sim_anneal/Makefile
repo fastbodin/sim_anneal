@@ -1,5 +1,5 @@
 # Compiler
-CXX = g++
+CXX = g++-15
 
 # Compiler flags
 INCLUDE = -I include/
