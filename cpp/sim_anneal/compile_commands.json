@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-I",
+      "include/",
+      "-O3",
+      "-o",
+      "build/sim_anneal",
+      "src/main.cpp"
+    ],
+    "directory": "/Users/aaronslobodin/github/sim_anneal/cpp/sim_anneal",
+    "file": "/Users/aaronslobodin/github/sim_anneal/cpp/sim_anneal/src/main.cpp",
+    "output": "/Users/aaronslobodin/github/sim_anneal/cpp/sim_anneal/build/sim_anneal"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-I",
+      "include/",
+      "-O3",
+      "-o",
+      "build/sim_anneal",
+      "src/read_and_print.cpp"
+    ],
+    "directory": "/Users/aaronslobodin/github/sim_anneal/cpp/sim_anneal",
+    "file": "/Users/aaronslobodin/github/sim_anneal/cpp/sim_anneal/src/read_and_print.cpp",
+    "output": "/Users/aaronslobodin/github/sim_anneal/cpp/sim_anneal/build/sim_anneal"
+  }
+]
