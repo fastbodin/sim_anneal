@@ -26,38 +26,39 @@ def main():
     np.random.seed(seed=21)  # seed random number generator
 
     n = 12  # number of cities
-    x_cor, y_cor = np.random.rand(n), np.random.rand(n)  # coordinates of cities
-    # determine distances between cities
+    num_iters = 10000  # number of iterations
+    num_res = 1000  # number of restarts
+    run_data = np.array([n * n, num_res, num_iters])
+
+    # coordinates of cities, distances between cities, and QUBO matrix
+    x_cor, y_cor = np.random.rand(n), np.random.rand(n)
     dists = np.array(
         [
             [get_dist(x_cor[u], y_cor[u], x_cor[v], y_cor[v]) for v in range(n)]
             for u in range(n)
         ]
     )
-    np.savetxt("output/x_cor", x_cor, delimiter=" ")
-    np.savetxt("output/y_cor", y_cor, delimiter=" ")
-    np.savetxt("output/distances", dists, delimiter=" ")
-
     Q = make_matrix.construct_qubo_matrix(n, dists)
-    np.savetxt("output/QUBO_matrix", Q, delimiter=" ")
 
-    num_iters = 10000
-    temp = np.exp(-0.5 * np.linspace(0, 10, num_iters))
-    beta_sched = 1 / temp
-    np.savetxt("output/beta_schedule", beta_sched, delimiter=" ")
-
-    fig, axs = plt.subplots(1, 2)
-    axs[0].plot(np.linspace(0, 10, num_iters), temp, color="blue")
+    temperature = np.exp(-0.5 * np.linspace(0, 10, num_iters))
+    beta_schedule = 1 / temperature
+    # Visualize beta and temperature schedule
+    _, axs = plt.subplots(1, 2)
+    axs[0].plot(np.linspace(0, 10, num_iters), temperature, color="blue")
     axs[0].set_title("Temperature Schedule")
-    axs[1].plot(np.linspace(0, 10, num_iters), beta_sched, color="red")
+    axs[1].plot(np.linspace(0, 10, num_iters), beta_schedule, color="red")
     axs[1].set_title("Beta Schedule")
-
     plt.tight_layout()
     plt.savefig("output/beta_and_temperature.png", dpi=300)
     plt.close()
 
-    run_data = np.array([n * n, 1000, num_iters])
+    # save all relevant data for future use
     np.savetxt("output/run_data", run_data, delimiter=" ", fmt="%d")
+    np.savetxt("output/x_cor", x_cor, delimiter=" ")
+    np.savetxt("output/y_cor", y_cor, delimiter=" ")
+    np.savetxt("output/distances", dists, delimiter=" ")
+    np.savetxt("output/QUBO_matrix", Q, delimiter=" ")
+    np.savetxt("output/beta_schedule", beta_schedule, delimiter=" ")
 
 
 main()
