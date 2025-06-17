@@ -83,5 +83,10 @@ def main():
     tour, cost = read_sol(n, x, dists)
     draw_graph(x_cor, y_cor, tour, n, cost, "python")
 
+    print("ILP")
+    x = np.loadtxt("ilp/output/solution").astype(np.bool_)
+    tour, cost = read_sol(n, x, dists)
+    draw_graph(x_cor, y_cor, tour, n, cost, "ilp")
+
 
 main()
