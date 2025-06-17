@@ -18,12 +18,15 @@ The C++ build was tested with GCC 15.1 (https://gcc.gnu.org/gcc-15/).
 Each problem instance requires three arguments:
 
 ```
-Q (n x n matrix): Quadratic matrix representing your QUBO model.
+Q (square symmetric matrix): Matrix representing your QUBO model.
 
 num_restarts (integer): Number of desired restarts.
 
-beta_sched (vector): 1/temperate schedule for each iteration.
+beta_schedule (vector): 1/temperate schedule for each iteration.
 ```
+
+Note the length of beta_schedule corresponds to the number of iterations
+per restart.
 
 ### Usage:
 
