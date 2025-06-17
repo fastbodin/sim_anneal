@@ -25,7 +25,7 @@ num_restarts (integer): Number of desired restarts.
 beta_schedule (vector): 1/temperate schedule for each iteration.
 ```
 
-Note the length of beta_schedule corresponds to the number of iterations
+Note the length of `beta_schedule` corresponds to the number of iterations
 per restart.
 
 ### Usage:
