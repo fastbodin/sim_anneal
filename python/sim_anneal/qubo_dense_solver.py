@@ -118,7 +118,7 @@ def input_check(
 def qubo_solve(
     Q: NDArray[np.float64],
     num_restarts: int,
-    beta_sched: NDArray[np.float64],
+    beta_schedule: NDArray[np.float64],
 ) -> NDArray[np.bool_]:
     """
     Perform simulated anneal for dense quadratic unconstrained binary
@@ -127,15 +127,14 @@ def qubo_solve(
     Args:
         Q: quadratic matrix
         num_restarts: number of restarts in simulation
-        num_iterations: number of iterations per restart in simulation
-        beta_sched: 1/temperature schedule
+        beta_schedule: 1/temperature schedule
 
     Returns:
-        minimum energy state found
+        Minimum energy state found
     """
 
     n = Q.shape[0]
-    num_iterations = beta_sched.shape[0]
+    num_iterations = beta_schedule.shape[0]
     input_check(Q, num_restarts, num_iterations)
 
     min_energy_state = np.empty(n, dtype=np.bool_)
@@ -144,7 +143,7 @@ def qubo_solve(
     x_energy = float("inf")
 
     for _ in range(num_restarts):
-        x, x_energy = sim_anneal(Q, n, num_iterations, beta_sched)
+        x, x_energy = sim_anneal(Q, n, num_iterations, beta_schedule)
 
         if x_energy < min_energy:
             min_energy_state = np.copy(x)
