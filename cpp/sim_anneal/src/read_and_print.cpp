@@ -17,7 +17,7 @@ void check_qubo_model(const Dense_qubo &model) {
                 std::to_string(model.num_iterations));
   }
   // check that matrix Q is symmetric
-  double epsilon = 0.000000001;
+  constexpr double epsilon = 0.000000001;
   for (int i = 0; i < model.n; ++i) {
     for (int j = 0; j < model.n; ++j) {
       if ((model.Q[i][j] + epsilon < model.Q[j][i]) ||

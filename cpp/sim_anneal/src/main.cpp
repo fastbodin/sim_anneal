@@ -19,9 +19,9 @@ void consider_neighbor_states(const Dense_qubo &model, Solution_state &sol,
     if ((sol.d_energy[i] <= 0) ||
         (rng.getprob() < std::exp(-sol.d_energy[i] * beta))) {
 
-      sol.x[i] = !sol.x[i];           // flip of spin of node
-      sol.energy += sol.d_energy[i];  // update state energy
-      term_sign = (2 * sol.x[i] - 1); // for updating delta energies
+      sol.x[i] = !sol.x[i];          // flip of spin of node
+      sol.energy += sol.d_energy[i]; // update state energy
+      term_sign = sol.x[i] ? 1 : -1; // for updating delta energies
 
       for (int j = 0; j < model.n; ++j) {
         if (j != i) {

@@ -11,8 +11,8 @@ class Random {
   std::bernoulli_distribution dist_bool;
 
 public:
-  // Random() : gen(2) {} // set seed for testing purpose
   Random() : gen(std::random_device{}()), dist_real(0.0, 1.0), dist_bool(0.5) {}
+  // Random() : gen(3), dist_real(0.0, 1.0), dist_bool(0.5) {} // for testing
 
   double getprob() { // random real in [0, 1)
     return dist_real(gen);
