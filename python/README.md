@@ -4,7 +4,8 @@ This dir contains a simulated annealing algorithm implemented in Python.
 
 ## Requirements:
 
-The build requires NumPy and Numba and was tested on Python 3.12.
+The build requires NumPy (tested on 2.3.0) and Numba (tested on 0.61.2) and was
+tested on Python 3.12.
 
 ## Running:
 
@@ -24,8 +25,8 @@ in `../problems/tsp/problem_instance/`.
 ## Output:
 
 When run, `qds.qubo_solve(Q, num_restarts, beta_schedule)` will return a (1 x
-n) numpy matrix of type `np.bool_` where the ith element is the assignment to
-the ith variable.
+n) numpy matrix of type `np.bool_` where the $i$ th element is the assignment
+to the $i$ th variable.
 
 ## Example:
 

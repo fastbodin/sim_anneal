@@ -30,8 +30,8 @@ instance.
 ## Output:
 
 When run, the program will output the state with the minimum energy found in
-simulated anneal to `output/solution` where row i holds the assignment to
-variable i.
+simulated anneal to `output/solution` where row $i$ holds the assignment to
+variable $i$.
 
 ## Example:
 
