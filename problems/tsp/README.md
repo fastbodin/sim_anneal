@@ -2,7 +2,7 @@
 
 The traveling salesman problem can be modelled by the following QUBO. Given
 a set of $n$ cities, let $x_{i,j}$ be equal to 1 if city $i$ is
-the $j$th city visited in the tour and 0 otherwise.
+the $j$ th city visited in the tour and 0 otherwise.
 
 ## Constraints:
 
