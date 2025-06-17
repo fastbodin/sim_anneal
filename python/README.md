@@ -19,7 +19,7 @@ where
    with your desired 1/temperature schedule.
 
 See `examples/tsp/example.py` for an example solver call given the TSP instance
-in `../examples/tsp/output/`.
+in `../problems/tsp/problem_instance/`.
 
 ## Output:
 
@@ -30,4 +30,4 @@ the ith variable.
 ## Example:
 
 See `examples/tsp/` for an example given the TSP instance in
-`../examples/tsp/output/`.
+`../problems/tsp/problem_instance/`.

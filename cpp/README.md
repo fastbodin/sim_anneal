@@ -24,7 +24,7 @@ where
 3. `beta_schedule` is a file that contains the beta schedule with elements
    separated by a space.
 
-See `../examples/tsp/output/` for relevant examples of these files for a TSP
+See `../problems/tsp/problem_instance/` for relevant examples of these files for a TSP
 instance.
 
 ## Output:
@@ -36,5 +36,5 @@ variable i.
 ## Example:
 
 See `examples/tsp/` for an example run file and solution found given
-the TSP instance in `../examples/tsp/output/`.
+the TSP instance in `../problems/tsp/problem_instance/`.
 

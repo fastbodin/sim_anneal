@@ -34,5 +34,5 @@ See `python/README.md` and `cpp/README.md` for instructions.
 
 ### Examples:
 
-See `examples/tsp/` for an example Traveling Salesman Instance that is
+See `problems/tsp/` for a Traveling Salesman Problem that is
 referenced in both `python/examples/` and `cpp/examples/`.
