@@ -2,7 +2,7 @@ import numpy as np
 import math
 from matplotlib import pyplot as plt
 
-import make_matrix
+import generate_tsp_matrix as gtm
 
 
 def get_dist(
@@ -19,7 +19,7 @@ def get_dist(
 
 def main():
     """
-    Construct a random instance of the TSP.
+    Construct a random TSP instance.
 
     Outputs the associated QUBO matrix and beta schedule.
     """
@@ -27,7 +27,7 @@ def main():
 
     n = 12  # number of cities
     num_res = 1000  # number of restarts
-    num_iters = 10000  # number of iterations
+    num_iters = 100000  # number of iterations
     run_data = np.array([n * n, num_res, num_iters])
 
     # coordinates of cities, distances between cities, and QUBO matrix
@@ -38,7 +38,7 @@ def main():
             for u in range(n)
         ]
     )
-    Q = make_matrix.construct_qubo_matrix(n, dists)
+    Q = gtm.construct_qubo_matrix(n, dists)
 
     temperature = np.exp(-0.6 * np.linspace(0, 10, num_iters))
     beta_schedule = 1 / temperature
@@ -49,16 +49,16 @@ def main():
     axs[1].plot(np.linspace(0, 10, num_iters), beta_schedule, color="red")
     axs[1].set_title("Beta Schedule")
     plt.tight_layout()
-    plt.savefig("output/beta_and_temperature.png", dpi=300)
+    plt.savefig("problem_instance/beta_and_temperature.png", dpi=300)
     plt.close()
 
     # save all relevant data for future use
-    np.savetxt("output/run_data", run_data, delimiter=" ", fmt="%d")
-    np.savetxt("output/x_cor", x_cor, delimiter=" ")
-    np.savetxt("output/y_cor", y_cor, delimiter=" ")
-    np.savetxt("output/distances", dists, delimiter=" ")
-    np.savetxt("output/QUBO_matrix", Q, delimiter=" ")
-    np.savetxt("output/beta_schedule", beta_schedule, delimiter=" ")
+    np.savetxt("problem_instance/run_data", run_data, delimiter=" ", fmt="%d")
+    np.savetxt("problem_instance/x_cor", x_cor, delimiter=" ")
+    np.savetxt("problem_instance/y_cor", y_cor, delimiter=" ")
+    np.savetxt("problem_instance/distances", dists, delimiter=" ")
+    np.savetxt("problem_instance/QUBO_matrix", Q, delimiter=" ")
+    np.savetxt("problem_instance/beta_schedule", beta_schedule, delimiter=" ")
 
 
 main()

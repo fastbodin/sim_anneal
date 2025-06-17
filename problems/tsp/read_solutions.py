@@ -37,15 +37,18 @@ def draw_graph(
     )
 
     plt.axis("off")
-    plt.title("Tour Cost: {}".format(cost), fontsize=14)
+    plt.title("Tour Cost: {} ({})".format(cost, lang), fontsize=14)
     plt.tight_layout()
-    plt.savefig("solution/tsp_sol_{}.png".format(lang), dpi=300)
+    plt.savefig("solutions/tsp_sol_{}.png".format(lang), dpi=300)
+    # plt.savefig("problem_instance/tsp_instance.png".format(lang), dpi=300)
     plt.close()
 
 
-# city i on tour step j is given index: n * i + j
-# given input index, return city and tour step
 def get_city_and_tour_step(n: int, index: int) -> tuple[int, int]:
+    """
+    City i on tour step j is given index: n * i + j.
+    Given input index, return city and tour step
+    """
     return index // n, index % n
 
 
@@ -65,9 +68,9 @@ def read_sol(
 
 
 def main():
-    x_cor = np.loadtxt("output/x_cor")
-    y_cor = np.loadtxt("output/y_cor")
-    dists = np.loadtxt("output/distances")
+    x_cor = np.loadtxt("problem_instance/x_cor")
+    y_cor = np.loadtxt("problem_instance/y_cor")
+    dists = np.loadtxt("problem_instance/distances")
     n = len(x_cor)
 
     print("CPP")

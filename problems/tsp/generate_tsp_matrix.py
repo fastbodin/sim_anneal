@@ -110,14 +110,14 @@ def construct_qubo_matrix(
     n: int, dists: NDArray[np.float64]
 ) -> NDArray[np.float64]:
     """
-    Create QUBO matrix given TSP problem
+    Create QUBO matrix given TSP instance.
 
     Args:
         n: number of cities
         dists: (n x n) matrix where dists[i][j] is distance between city i and j
 
     Returns:
-        QUBO matrix of TSP given inputs
+        QUBO matrix of TSP instance.
     """
 
     input_check(n, dists)
