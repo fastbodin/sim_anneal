@@ -62,7 +62,7 @@ def delta_energy(Q: NDArray[np.float64], x: NDArray[np.bool_], i: int) -> float:
 def sim_anneal(
     Q: NDArray[np.float64],
     n: int,
-    num_iters: int,
+    num_iterations: int,
     beta_sched: NDArray[np.float64],
 ) -> tuple[NDArray[np.bool_], float]:
     """
@@ -71,7 +71,7 @@ def sim_anneal(
     Args:
         Q: quadratic matrix
         n: number of variables
-        num_iters: number of iterations
+        num_iterations: number of iterations
         beta_sched: 1/temperature schedule
 
     Returns:
@@ -86,7 +86,7 @@ def sim_anneal(
         [delta_energy(Q, x, i) for i in range(n)], dtype=np.float64
     )
 
-    for i in range(num_iters):
+    for i in range(num_iterations):
         x_energy = consider_neighbor_states(
             Q, n, x, x_energy, d_energy, beta_sched[i]
         )
@@ -97,7 +97,7 @@ def sim_anneal(
 def input_check(
     Q: NDArray[np.float64],
     num_res: int,
-    num_iters: int,
+    num_iterations: int,
 ) -> None:
     """
     Check inputs of simulated anneal.
@@ -111,13 +111,13 @@ def input_check(
     if not isinstance(num_res, int) or num_res < 1:
         raise ValueError("num_res is not positive integer")
 
-    if not isinstance(num_iters, int) or num_iters < 1:
-        raise ValueError("num_iters is not positive integer")
+    if not isinstance(num_iterations, int) or num_iterations < 1:
+        raise ValueError("num_iterations is not positive integer")
 
 
 def qubo_solve(
     Q: NDArray[np.float64],
-    num_res: int,
+    num_restarts: int,
     beta_sched: NDArray[np.float64],
 ) -> NDArray[np.bool_]:
     """
@@ -126,8 +126,8 @@ def qubo_solve(
 
     Args:
         Q: quadratic matrix
-        num_res: number of restarts in simulation
-        num_iters: number of iterations per restart in simulation
+        num_restarts: number of restarts in simulation
+        num_iterations: number of iterations per restart in simulation
         beta_sched: 1/temperature schedule
 
     Returns:
@@ -135,19 +135,20 @@ def qubo_solve(
     """
 
     n = Q.shape[0]
-    num_iters = beta_sched.shape[0]
-    input_check(Q, num_res, num_iters)
+    num_iterations = beta_sched.shape[0]
+    input_check(Q, num_restarts, num_iterations)
 
     min_energy_state = np.empty(n, dtype=np.bool_)
     min_energy = float("inf")
     x = np.empty(n, dtype=np.bool_)
     x_energy = float("inf")
 
-    for _ in range(num_res):
-        x, x_energy = sim_anneal(Q, n, num_iters, beta_sched)
+    for _ in range(num_restarts):
+        x, x_energy = sim_anneal(Q, n, num_iterations, beta_sched)
 
         if x_energy < min_energy:
             min_energy_state = np.copy(x)
             min_energy = x_energy
+            print(min_energy)
 
     return min_energy_state

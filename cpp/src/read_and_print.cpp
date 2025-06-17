@@ -67,8 +67,15 @@ Dense_qubo read_qubo_model() {
 }
 
 void print_solution(const Solution_state &sol) {
-  // std::cout << sol.energy << std::endl;
-  for (int i = 0; i < sol.n; ++i) {
-    std::cout << sol.x[i] << std::endl;
+  // Open a file to write the values
+  std::ofstream outFile("output/solution");
+  // Check if the file is open
+  if (outFile.is_open()) {
+    for (int i = 0; i < sol.n; ++i) {
+      outFile << sol.x[i] << std::endl;
+    }
+    outFile.close();
+  } else {
+    throw_error("Failed to open output file.");
   }
 }

@@ -59,6 +59,7 @@ void sim_anneal(const Dense_qubo &model, Random &rng,
   if (sol.energy < best_sol.energy) {
     best_sol.x = sol.x;
     best_sol.energy = sol.energy;
+    std::cout << best_sol.energy << std::endl;
   }
 }
 

@@ -26,8 +26,8 @@ def main():
     np.random.seed(seed=21)  # seed random number generator
 
     n = 12  # number of cities
-    num_iters = 10000  # number of iterations
     num_res = 1000  # number of restarts
+    num_iters = 10000  # number of iterations
     run_data = np.array([n * n, num_res, num_iters])
 
     # coordinates of cities, distances between cities, and QUBO matrix
@@ -40,7 +40,7 @@ def main():
     )
     Q = make_matrix.construct_qubo_matrix(n, dists)
 
-    temperature = np.exp(-0.5 * np.linspace(0, 10, num_iters))
+    temperature = np.exp(-0.6 * np.linspace(0, 10, num_iters))
     beta_schedule = 1 / temperature
     # Visualize beta and temperature schedule
     _, axs = plt.subplots(1, 2)
