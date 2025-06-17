@@ -7,24 +7,25 @@
 
 class Random {
   std::mt19937 gen; // Standard mersenne_twister_engine
+  std::uniform_real_distribution<> dist_real;
+  std::bernoulli_distribution dist_bool;
+
 public:
   // Random() : gen(2) {} // set seed for testing purpose
-  Random() : gen(std::random_device{}()) {}
+  Random() : gen(std::random_device{}()), dist_real(0.0, 1.0), dist_bool(0.5) {}
 
-  double getprob() { // random real between 0 and 1
-    std::uniform_real_distribution<> dist(0.0, 1.0);
-    return dist(gen);
+  double getprob() { // random real in [0, 1)
+    return dist_real(gen);
   }
 
   bool getbool() { // random bool
-    std::bernoulli_distribution dist(0.5);
-    return dist(gen);
+    return dist_bool(gen);
   }
 };
 
 struct Dense_qubo {
-  std::vector<std::vector<double>> Q;
-  int n;
+  std::vector<std::vector<double>> Q; // QUBO matrix
+  int n;                              // # of variables in model
   int num_restarts;
   int num_iterations;
   std::vector<double> beta_schedule;
