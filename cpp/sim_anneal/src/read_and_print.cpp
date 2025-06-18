@@ -72,7 +72,7 @@ void print_solution(const Solution_state &sol) {
   // Check if the file is open
   if (outFile.is_open()) {
     for (int i = 0; i < sol.n; ++i) {
-      outFile << sol.x[i] << std::endl;
+      outFile << static_cast<int>(sol.x[i]) << std::endl;
     }
     outFile.close();
   } else {

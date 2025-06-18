@@ -142,6 +142,6 @@ def qubo_solve(
         if xE < min_energy:
             min_energy_state = np.copy(x)
             min_energy = xE
-            # print(min_energy)
+            print(min_energy)
 
     return min_energy_state
