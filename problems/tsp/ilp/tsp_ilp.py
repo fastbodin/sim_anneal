@@ -43,7 +43,7 @@ def ilp(n: int, dists: NDArray[np.float64]):
             # if c_vars[(i,j)] = 0 -> t_vars[i] - t_vars[j] + 2 <= n
             ilp += t_vars[i] - t_vars[j] + 1 <= (n - 1) * (1 - c_vars[(i, j)])
 
-    gurobi_sol = ilp.solve(pulp.getSolver("GUROBI_CMD", msg=False))
+    gurobi_sol = ilp.solve(pulp.getSolver("GUROBI_CMD", msg=True))
 
     route = []
     for i in range(n):

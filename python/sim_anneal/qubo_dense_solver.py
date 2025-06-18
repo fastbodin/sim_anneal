@@ -8,8 +8,8 @@ def consider_neighbor_states(
     Q: NDArray[np.float64],
     n: int,
     x: NDArray[np.bool_],
-    x_energy: float,
-    d_energy: NDArray[np.float64],
+    xE: float,
+    dE: NDArray[np.float64],
     beta: float,
 ) -> float:
     """
@@ -20,21 +20,19 @@ def consider_neighbor_states(
         Q: quadratic matrix
         n: number of variables
         x: state vector
-        x_energy: energy of current state
-        d_energy: delta energies of neighboring states
+        xE: energy of current state
+        dE: delta energies of neighboring states
         beta: 1/temperature for iteration
 
     Returns:
-        x_energy: Energy of current state
+        xE: Energy of current state
     """
 
     for i in range(n):
         # Accept or decline candidate state by the Metropolis-Hasting rule.
-        if (d_energy[i] <= 0) or (
-            np.random.random() < np.exp(-d_energy[i] * beta)
-        ):
+        if (dE[i] <= 0) or (np.random.random() < np.exp(-dE[i] * beta)):
             x[i] = x[i] ^ True  # flip of spin of node
-            x_energy += d_energy[i]
+            xE += dE[i]
             term_sign = 2 * x[i] - 1
 
             for j in range(n):  # update delta energies
@@ -42,9 +40,9 @@ def consider_neighbor_states(
                     # Given jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j]
                     # computed prior to flipping the spin of node i, it
                     # suffices to add the change to the term x[i] * x[j]
-                    d_energy[j] += term_sign * (2 - 4 * x[j]) * Q[i, j]
-            d_energy[i] *= -1  # re-flipping spin of node i simply flips sign
-    return x_energy
+                    dE[j] += term_sign * (2 - 4 * x[j]) * Q[i, j]
+            dE[i] *= -1  # re-flipping spin of node i simply flips sign
+    return xE
 
 
 def delta_energy(Q: NDArray[np.float64], x: NDArray[np.bool_], i: int) -> float:
@@ -76,22 +74,18 @@ def sim_anneal(
 
     Returns:
         x: minimum energy state found in simulated anneal
-        x_energy: associated energy
+        xE: associated energy
     """
 
     x = np.random.randint(2, size=n, dtype=np.bool_)
-    x_energy = np.matmul(np.matmul(x, Q), x)  # xQx^T
+    xE = np.matmul(np.matmul(x, Q), x)  # energy of state x: xQx^T
     # delta energies of neighboring states
-    d_energy = np.array(
-        [delta_energy(Q, x, i) for i in range(n)], dtype=np.float64
-    )
+    dE = np.array([delta_energy(Q, x, i) for i in range(n)], dtype=np.float64)
 
     for i in range(num_iterations):
-        x_energy = consider_neighbor_states(
-            Q, n, x, x_energy, d_energy, beta_sched[i]
-        )
+        xE = consider_neighbor_states(Q, n, x, xE, dE, beta_sched[i])
 
-    return x, x_energy
+    return x, xE
 
 
 def input_check(
@@ -132,7 +126,7 @@ def qubo_solve(
     Returns:
         Minimum energy state found
     """
-
+    # np.random.seed(seed=21)  # for testing
     n = Q.shape[0]
     num_iterations = beta_schedule.shape[0]
     input_check(Q, num_restarts, num_iterations)
@@ -140,14 +134,14 @@ def qubo_solve(
     min_energy_state = np.empty(n, dtype=np.bool_)
     min_energy = float("inf")
     x = np.empty(n, dtype=np.bool_)
-    x_energy = float("inf")
+    xE = float("inf")
 
     for _ in range(num_restarts):
-        x, x_energy = sim_anneal(Q, n, num_iterations, beta_schedule)
+        x, xE = sim_anneal(Q, n, num_iterations, beta_schedule)
 
-        if x_energy < min_energy:
+        if xE < min_energy:
             min_energy_state = np.copy(x)
-            min_energy = x_energy
-            print(min_energy)
+            min_energy = xE
+            # print(min_energy)
 
     return min_energy_state

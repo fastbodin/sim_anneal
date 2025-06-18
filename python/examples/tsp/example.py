@@ -14,6 +14,10 @@ def main():
 
     # solve and output solution
     x = qds.qubo_solve(Q, num_restarts, beta_schedule)
+
+    # x = np.loadtxt("../../../problems/tsp/ilp/output/solution")
+    # print(np.matmul(np.matmul(x,Q),x))
+
     np.savetxt("output/solution", x, delimiter=" ", fmt="%d")
 
 

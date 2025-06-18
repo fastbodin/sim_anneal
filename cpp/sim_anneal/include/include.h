@@ -49,8 +49,9 @@ struct Solution_state {
   void compute_energy(const std::vector<std::vector<double>> &Q) {
     energy = 0;
     for (int i = 0; i < n; ++i) {
-      for (int j = 0; j < n; ++j) {
-        energy += Q[i][j] * x[i] * x[j];
+      energy += Q[i][i] * x[i];
+      for (int j = i + 1; j < n; ++j) {
+        energy += 2.0 * Q[i][j] * x[i] * x[j];
       }
     }
   }
@@ -63,7 +64,7 @@ struct Solution_state {
     for (int i = 0; i < n; ++i) {
       d_energy[i] = Q[i][i];
       for (int j = 0; j < n; ++j) {
-        d_energy[i] += 2 * (1 - 2 * x[i]) * Q[i][j] * x[j];
+        d_energy[i] += 2.0 * (1.0 - 2.0 * x[i]) * Q[i][j] * x[j];
       }
     }
   }
