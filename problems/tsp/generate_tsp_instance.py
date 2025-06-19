@@ -40,7 +40,7 @@ def main():
     )
     Q = gtm.construct_qubo_matrix(n, dists)
 
-    temperature = np.exp(-0.5 * np.linspace(0, 10, num_iters))
+    temperature = np.exp(-0.6 * np.linspace(0, 10, num_iters))
     beta_schedule = 1 / temperature
     # Visualize beta and temperature schedule
     _, axs = plt.subplots(1, 2)

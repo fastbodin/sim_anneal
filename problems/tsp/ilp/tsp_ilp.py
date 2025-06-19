@@ -18,7 +18,7 @@ def ilp(n: int, dists: NDArray[np.float64]):
 
     # Variables: t_{i} helps prevent subtours
     t_vars = pulp.LpVariable.dicts(
-        "t", [i for i in range(1, n)], lowBound=2, upBound=n, cat="Integer"
+        "t", [i for i in range(1, n)], lowBound=1, upBound=n, cat="Integer"
     )
 
     # Objective function
