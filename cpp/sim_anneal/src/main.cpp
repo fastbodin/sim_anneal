@@ -25,13 +25,12 @@ void consider_neighbor_states(const Dense_qubo &model, Solution_state &sol,
     term_sign = 2 * sol.x[i] - 1; // for updating delta energies
 
     for (int j = 0; j < model.n; ++j) {
-      if (j != i) {
-        // Given jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j] computed prior
-        // to flipping the spin of node i, it suffices to add the change to
-        // the term x[i] * x[j]
-        sol.dE[j] +=
-            term_sign * ((2 - 4 * sol.x[j]) * model.Q[i * model.n + j]);
-      }
+      if (j == i)
+        continue;
+      // Given jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j] computed prior
+      // to flipping the spin of node i, it suffices to add the change to
+      // the term x[i] * x[j]
+      sol.dE[j] += term_sign * ((2 - 4 * sol.x[j]) * model.Q[i * model.n + j]);
     }
     sol.dE[i] *= -1.0; // re-flipping spin of node i simply flips sign
   }
