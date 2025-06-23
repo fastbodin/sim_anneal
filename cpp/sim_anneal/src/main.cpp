@@ -15,22 +15,25 @@ void consider_neighbor_states(const Dense_qubo &model, Solution_state &sol,
   int term_sign;
 
   for (int i = 0; i < model.n; ++i) {
-    // Accept or decline state by the Metropolis-Hasting rule.
-    if ((sol.dE[i] <= 0) || (rng.getprob() < std::exp(-sol.dE[i] * beta))) {
-      sol.x[i] = 1 - sol.x[i];      // flip of spin of node
-      sol.E += sol.dE[i];           // update state energy
-      term_sign = 2 * sol.x[i] - 1; // for updating delta energies
-
-      for (int j = 0; j < model.n; ++j) {
-        if (j != i) {
-          // Given jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j] computed prior
-          // to flipping the spin of node i, it suffices to add the change to
-          // the term x[i] * x[j]
-          sol.dE[j] += term_sign * ((2 - 4 * sol.x[j]) * model.Q[i][j]);
-        }
-      }
-      sol.dE[i] *= -1.0; // re-flipping spin of node i simply flips sign
+    // Accept or decline state obtained by flipping sping of ith node by the
+    // Metropolis-Hasting rule.
+    if ((sol.dE[i] > 0.0) && (rng.getprob() >= std::exp(-sol.dE[i] * beta))) {
+      continue;
     }
+    sol.x[i] = 1 - sol.x[i];      // flip of spin of node
+    sol.E += sol.dE[i];           // update state energy
+    term_sign = 2 * sol.x[i] - 1; // for updating delta energies
+
+    for (int j = 0; j < model.n; ++j) {
+      if (j != i) {
+        // Given jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j] computed prior
+        // to flipping the spin of node i, it suffices to add the change to
+        // the term x[i] * x[j]
+        sol.dE[j] +=
+            term_sign * ((2 - 4 * sol.x[j]) * model.Q[i * model.n + j]);
+      }
+    }
+    sol.dE[i] *= -1.0; // re-flipping spin of node i simply flips sign
   }
 }
 
@@ -70,8 +73,8 @@ int main(const int argc, const char *argv[]) {
    *   	pipe in desired # of restarts
    *   	pipe in desired # of iterations per restart
    *
-   *   	QUBO (nxn)-matrix is piped to program
-   *   	(1xn)-vector beta schedule is piped to program
+   *   	pipe in QUBO (nxn)-matrix
+   *   	pipe in (1xn)-vector beta schedule
    */
   Random rng; // Random number generator
 

@@ -17,24 +17,25 @@ public:
     return dist_real(gen);
   }
 
-  uint_fast8_t getbit() { // 0 or 1
+  int_fast8_t getbit() { // 0 or 1
     return dist_ber(gen);
   }
 };
 
 struct Dense_qubo {
-  std::vector<std::vector<double>> Q; // QUBO matrix
-  int n;                              // # of variables in model
+  std::vector<double> Q; // flattened QUBO (nxn) matrix, element in row i, col j
+                         // is given index i*n + j
+  int n;                 // # of variables in model
   int num_restarts;
   int num_iterations;
   std::vector<double> beta_schedule;
 };
 
 struct Solution_state {
-  std::vector<uint_fast8_t> x; // solution state vector
-  int n;                       // size of x
-  double E;                    // energy of state
-  std::vector<double> dE;      // delta energies of neighbour states
+  std::vector<int_fast8_t> x; // solution state vector
+  int n;                      // size of x
+  double E;                   // energy of state
+  std::vector<double> dE;     // delta energies of neighbour states
 
   Solution_state(const int size) : n(size), x(size), dE(size){};
 
@@ -45,12 +46,12 @@ struct Solution_state {
   }
 
   // Compute: xQx^T given symmetric matrix Q and state vector x.
-  void compute_energy(const std::vector<std::vector<double>> &Q) {
+  void compute_energy(const std::vector<double> &Q) {
     E = 0;
     for (int i = 0; i < n; ++i) {
-      E += Q[i][i] * x[i];
+      E += Q[i * (n + 1)] * x[i];
       for (int j = i + 1; j < n; ++j) {
-        E += 2 * Q[i][j] * x[i] * x[j];
+        E += 2 * Q[i * n + j] * x[i] * x[j];
       }
     }
   }
@@ -59,11 +60,11 @@ struct Solution_state {
   // matrix Q and boolean vectors x and e such that x + e = (x with ith bit
   // flipped), the delta energy is given by:
   // (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i,i]
-  void compute_delta_energies(const std::vector<std::vector<double>> &Q) {
+  void compute_delta_energies(const std::vector<double> &Q) {
     for (int i = 0; i < n; ++i) {
-      dE[i] = Q[i][i];
+      dE[i] = Q[i * (n + 1)];
       for (int j = 0; j < n; ++j) {
-        dE[i] += (2 - 4 * x[i]) * Q[i][j] * x[j];
+        dE[i] += (2 - 4 * x[i]) * Q[i * n + j] * x[j];
       }
     }
   }
