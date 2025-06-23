@@ -12,14 +12,13 @@ void consider_neighbor_states(const Dense_qubo &model, Solution_state &sol,
    *    beta: 1/temperature for iteration.
    *   	rng: Random number generator.
    */
-  int term_sign;
+  int_fast8_t term_sign;
 
   for (int i = 0; i < model.n; ++i) {
     // Accept or decline state obtained by flipping sping of ith node by the
     // Metropolis-Hasting rule.
-    if ((sol.dE[i] > 0.0) && (rng.getprob() >= std::exp(-sol.dE[i] * beta))) {
+    if ((sol.dE[i] > 0.0) && (rng.getprob() >= std::exp(-sol.dE[i] * beta)))
       continue;
-    }
     sol.x[i] = 1 - sol.x[i];      // flip of spin of node
     sol.E += sol.dE[i];           // update state energy
     term_sign = 2 * sol.x[i] - 1; // for updating delta energies
@@ -30,7 +29,7 @@ void consider_neighbor_states(const Dense_qubo &model, Solution_state &sol,
       // Given jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j] computed prior
       // to flipping the spin of node i, it suffices to add the change to
       // the term x[i] * x[j]
-      sol.dE[j] += term_sign * ((2 - 4 * sol.x[j]) * model.Q[i * model.n + j]);
+      sol.dE[j] += term_sign * (2 - 4 * sol.x[j]) * model.Q[i * model.n + j];
     }
     sol.dE[i] *= -1.0; // re-flipping spin of node i simply flips sign
   }

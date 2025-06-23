@@ -26,7 +26,7 @@ def main():
     np.random.seed(seed=21)  # seed random number generator
 
     n = 12  # number of cities
-    num_res = 1000  # number of restarts
+    num_res = 10000  # number of restarts
     num_iters = 10000  # number of iterations
     run_data = np.array([n * n, num_res, num_iters])
 
