@@ -31,20 +31,20 @@ void check_qubo_model(const Dense_qubo &model) {
 }
 
 Dense_qubo read_qubo_model() {
-  Dense_qubo model;
+  int n_vars, n_res, n_iters;
   // Read meta data
-  if (!(std::cin >> model.n)) {
+  if (!(std::cin >> n_vars)) {
     throw_error("Failed to assign n");
   }
-  if (!(std::cin >> model.num_restarts)) {
+  if (!(std::cin >> n_res)) {
     throw_error("Failed to assign # of restarts");
   }
-  if (!(std::cin >> model.num_iterations)) {
+  if (!(std::cin >> n_iters)) {
     throw_error("Failed to assign # of iterations");
   }
 
+  Dense_qubo model(n_vars, n_res, n_iters);
   // Fill matrix Q
-  model.Q.resize(model.n * model.n);
   for (int i = 0; i < model.Q.size(); ++i) {
     if (!(std::cin >> model.Q[i])) {
       int row = i / model.n;
@@ -53,9 +53,7 @@ Dense_qubo read_qubo_model() {
                   std::to_string(col) + "] when reading qubo matrix.");
     }
   }
-
   // Fill beta schedule
-  model.beta_schedule.resize(model.num_iterations);
   for (int i = 0; i < model.num_iterations; ++i) {
     if (!(std::cin >> model.beta_schedule[i])) {
       throw_error("Failed to assign value to beta_schedule[" +

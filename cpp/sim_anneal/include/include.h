@@ -12,11 +12,16 @@ class Random {
 
 public:
   Random() : Gen(std::random_device{}()), DistReal(0.0, 1.0), DistBer(0.5) {}
+
   double getprob() { return DistReal(Gen); }    // random real in [0, 1)
   int_fast8_t getbit() { return DistBer(Gen); } // 0 or 1
 };
 
 struct Dense_qubo {
+  Dense_qubo(const int n_vars, const int n_res, const int n_iters)
+      : n(n_vars), num_restarts(n_res), num_iterations(n_iters),
+        Q(n_vars * n_vars), beta_schedule(n_iters){};
+
   std::vector<double> Q; // flattened QUBO (nxn) matrix, element in row i, col j
                          // is given index i*n + j
   int n;                 // # of variables in model
@@ -28,20 +33,19 @@ struct Dense_qubo {
 };
 
 struct Solution_state {
+  Solution_state(const int size) : n(size), x(size), dE(size){};
+
   std::vector<int_fast8_t> x; // solution state vector
   int n;                      // size of x
   double E;                   // energy of state
   std::vector<double> dE;     // delta energies of neighbour states
-
-  Solution_state(const int size) : n(size), x(size), dE(size){};
 
   void randomize_x(Random &Rng) {
     for (int i = 0; i < n; ++i) {
       x[i] = Rng.getbit();
     }
   }
-
-  // Compute: xQx^T given qubo model and state vector x.
+  // Compute: xQx^T given symmetric matrix Q and state vector x.
   void compute_energy(const Dense_qubo &model) {
     E = 0;
     for (int i = 0; i < n; ++i) {
@@ -51,7 +55,6 @@ struct Solution_state {
       }
     }
   }
-
   // Compute the delta energy if the ith bit of x is flipped. Given symmetric
   // matrix Q and boolean vectors x and e such that x + e = (x with ith bit
   // flipped), the delta energy is given by:
