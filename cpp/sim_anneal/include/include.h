@@ -6,20 +6,14 @@
 #include <vector>
 
 class Random {
-  std::mt19937 gen; // Standard mersenne_twister_engine
-  std::uniform_real_distribution<> dist_real;
-  std::bernoulli_distribution dist_ber;
+  std::mt19937 Gen; // Standard mersenne_twister_engine
+  std::uniform_real_distribution<> DistReal;
+  std::bernoulli_distribution DistBer;
 
 public:
-  Random() : gen(std::random_device{}()), dist_real(0.0, 1.0), dist_ber(0.5) {}
-
-  double getprob() { // random real in [0, 1)
-    return dist_real(gen);
-  }
-
-  int_fast8_t getbit() { // 0 or 1
-    return dist_ber(gen);
-  }
+  Random() : Gen(std::random_device{}()), DistReal(0.0, 1.0), DistBer(0.5) {}
+  double getprob() { return DistReal(Gen); }    // random real in [0, 1)
+  int_fast8_t getbit() { return DistBer(Gen); } // 0 or 1
 };
 
 struct Dense_qubo {
@@ -29,6 +23,8 @@ struct Dense_qubo {
   int num_restarts;
   int num_iterations;
   std::vector<double> beta_schedule;
+
+  double matrix_weight(const int i, const int j) const { return Q[i * n + j]; }
 };
 
 struct Solution_state {
@@ -39,19 +35,19 @@ struct Solution_state {
 
   Solution_state(const int size) : n(size), x(size), dE(size){};
 
-  void randomize_x(Random &rng) {
+  void randomize_x(Random &Rng) {
     for (int i = 0; i < n; ++i) {
-      x[i] = rng.getbit();
+      x[i] = Rng.getbit();
     }
   }
 
-  // Compute: xQx^T given symmetric matrix Q and state vector x.
-  void compute_energy(const std::vector<double> &Q) {
+  // Compute: xQx^T given qubo model and state vector x.
+  void compute_energy(const Dense_qubo &model) {
     E = 0;
     for (int i = 0; i < n; ++i) {
-      E += Q[i * (n + 1)] * x[i];
+      E += model.matrix_weight(i, i) * x[i];
       for (int j = i + 1; j < n; ++j) {
-        E += 2 * Q[i * n + j] * x[i] * x[j];
+        E += 2 * model.matrix_weight(i, j) * x[i] * x[j];
       }
     }
   }
@@ -60,11 +56,11 @@ struct Solution_state {
   // matrix Q and boolean vectors x and e such that x + e = (x with ith bit
   // flipped), the delta energy is given by:
   // (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i,i]
-  void compute_delta_energies(const std::vector<double> &Q) {
+  void compute_delta_energies(const Dense_qubo &model) {
     for (int i = 0; i < n; ++i) {
-      dE[i] = Q[i * (n + 1)];
+      dE[i] = model.matrix_weight(i, i);
       for (int j = 0; j < n; ++j) {
-        dE[i] += (2 - 4 * x[i]) * Q[i * n + j] * x[j];
+        dE[i] += (2 - 4 * x[i]) * model.matrix_weight(i, j) * x[j];
       }
     }
   }
