@@ -1,3 +1,4 @@
+#include "checker.hpp"
 #include "qubo.hpp"
 #include "solver.hpp"
 #include "state.hpp"
@@ -58,30 +59,6 @@ void sim_anneal(Random &Rng, const SolverData &Solver, const DenseQubo &Model,
     MinState.x = CurState.x;
     MinState.energy = CurState.energy;
     std::cout << MinState.energy << std::endl;
-  }
-}
-
-void check_solver_and_qubo(const SolverData &Solver, const DenseQubo &Model) {
-  if (Model.n <= 0) {
-    throw_error("Invalid n = " + std::to_string(Model.n));
-  }
-  if (Solver.num_restarts <= 0) {
-    throw_error("Invalid # of restarts = " +
-                std::to_string(Solver.num_restarts));
-  }
-  if (Solver.num_iterations <= 0) {
-    throw_error("Invalid # of iterations = " +
-                std::to_string(Solver.num_iterations));
-  }
-  // check that matrix is symmetric
-  constexpr double epsilon = 0.000000001;
-  for (int i = 0; i < Model.n; ++i) {
-    for (int j = 0; j < Model.n; ++j) {
-      if ((Model.matrix_weight(i, j) + epsilon < Model.matrix_weight(j, i)) ||
-          (Model.matrix_weight(i, j) - epsilon > Model.matrix_weight(j, i))) {
-        throw_error("QUBO Matrix is not symmetric");
-      }
-    }
   }
 }
 
