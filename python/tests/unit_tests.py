@@ -18,7 +18,7 @@ def qubo_solve_test():
     temp = np.exp(-0.7 * np.linspace(0, 10, num_iters))
     beta_sched = 1 / temp
 
-    x = qds.qubo_solve(Q, num_res, num_iters, beta_sched)
+    x = qds.qubo_solve(Q, num_res, beta_sched)
 
     if x.any():
         print("Min energy state: {} is not zero vector".format(x.astype(int)))
