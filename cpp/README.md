@@ -12,16 +12,14 @@ with GCC 15.1 (https://gcc.gnu.org/gcc-15/).
 Having successfully compiled, the code runs with via the following:
 
 ```
-./build/sim_anneal < {run_data} < {QUBO_matrix} < {beta_schedule}
+./build/sim_anneal < {# restarts} < {# iterations per restart} < {beta_schedule} < {# of variables} < {QUBO_matrix}
 ```
 
 where
 
-1. `run_data` is file of the form `{# variables in model} {# restarts} {#
-   iterations per restart}`
-2. `QUBO_matrix` is a file that contains the QUBO matrix with elements
+1. `beta_schedule` is a file that contains the beta schedule with elements
    separated by a space.
-3. `beta_schedule` is a file that contains the beta schedule with elements
+2. `QUBO_matrix` is a file that contains the QUBO matrix with elements
    separated by a space.
 
 See `../problems/tsp/problem_instance/` for relevant examples of these files for a TSP
