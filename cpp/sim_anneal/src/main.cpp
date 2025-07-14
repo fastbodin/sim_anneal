@@ -1,64 +1,87 @@
-#include "include.h"
+#include "qubo.hpp"
+#include "solver.hpp"
+#include "state.hpp"
 
-void consider_neighbor_states(const Dense_qubo &model, Solution_state &sol,
-                              const double beta, Random &Rng) {
+void consider_neighbor_states(Random &Rng, const DenseQubo &Model,
+                              const double beta, State &CurState) {
   /*/
    * Given state, consider neighboring states obtained by flipping
    * each node. Accept neighboring states based on Metropolis-Hasting rule.
    *
    * Args:
-   *   	model: Instance of quadratic unconstrained binary optimization problem.
-   *   	sol: Solution state.
-   *    beta: 1/temperature for iteration.
    *   	Rng: Random number generator.
+   *   	Model: Instance of quadratic unconstrained binary optimization.
+   *   	CurState: Solution state.
+   *    beta: 1/temperature for iteration.
    */
   int_fast8_t term_sign;
 
-  for (int i = 0; i < model.n; ++i) {
+  for (int i = 0; i < Model.n; ++i) {
     // Accept or decline state obtained by flipping sping of ith node by the
     // Metropolis-Hasting rule.
-    if ((sol.dE[i] > 0.0) && (Rng.getprob() >= std::exp(-sol.dE[i] * beta)))
+    if ((CurState.delta_energy[i] > 0.0) &&
+        (Rng.getprob() >= std::exp(-CurState.delta_energy[i] * beta)))
       continue;
-    sol.x[i] = 1 - sol.x[i];      // flip of spin of node
-    sol.E += sol.dE[i];           // update state energy
-    term_sign = 2 * sol.x[i] - 1; // for updating delta energies
+    CurState.x[i] = 1 - CurState.x[i];           // flip of spin of node
+    CurState.energy += CurState.delta_energy[i]; // update state energy
+    term_sign = 2 * CurState.x[i] - 1;           // for updating delta energies
 
-    for (int j = 0; j < model.n; ++j) {
+    for (int j = 0; j < Model.n; ++j) {
       if (j == i)
         continue;
       // Given jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j] computed prior
       // to flipping the spin of node i, it suffices to add the change to
       // the term x[i] * x[j]
-      sol.dE[j] += term_sign * (2 - 4 * sol.x[j]) * model.matrix_weight(i, j);
+      CurState.delta_energy[j] +=
+          term_sign * (2 - 4 * CurState.x[j]) * Model.matrix_weight(i, j);
     }
-    sol.dE[i] *= -1.0; // re-flipping spin of node i simply flips sign
+    CurState.delta_energy[i] *= -1.0; // re-flipping spin of node i flips sign
   }
 }
 
-void sim_anneal(const Dense_qubo &model, Random &Rng,
-                Solution_state &best_sol) {
+void sim_anneal(Random &Rng, const SolverData &Solver, const DenseQubo &Model,
+                State &MinState) {
   /*/
    *   From random starting solution, preform simulated anneal.
    *
    *   Args:
-   *   	model: Instance of quadratic unconstrained binary optimization.
    *   	Rng: Random number generator.
-   *
-   *   Returns:
-   *   	sol: Minimum energy sol found in simulated anneal.
+   *   	Solver: SolverData parameters
+   *   	Model: Instance of quadratic unconstrained binary optimization.
+   *   	MinState: Minimum energy state found
    */
-  Solution_state sol(model.n);
-  sol.randomize_x(Rng);
-  sol.compute_energy(model);
-  sol.compute_delta_energies(model);
-  for (int i = 0; i < model.num_iterations; ++i) {
-    consider_neighbor_states(model, sol, model.beta_schedule[i], Rng);
+  State CurState(Model.n, Rng, Model); // Initialize with random starting state
+  for (int i = 0; i < Solver.num_iterations; ++i) {
+    consider_neighbor_states(Rng, Model, Solver.beta_schedule[i], CurState);
   }
+  if (CurState.energy < MinState.energy) {
+    MinState.x = CurState.x;
+    MinState.energy = CurState.energy;
+    std::cout << MinState.energy << std::endl;
+  }
+}
 
-  if (sol.E < best_sol.E) {
-    best_sol.x = sol.x;
-    best_sol.E = sol.E;
-    std::cout << best_sol.E << std::endl;
+void check_solver_and_qubo(const SolverData &Solver, const DenseQubo &Model) {
+  if (Model.n <= 0) {
+    throw_error("Invalid n = " + std::to_string(Model.n));
+  }
+  if (Solver.num_restarts <= 0) {
+    throw_error("Invalid # of restarts = " +
+                std::to_string(Solver.num_restarts));
+  }
+  if (Solver.num_iterations <= 0) {
+    throw_error("Invalid # of iterations = " +
+                std::to_string(Solver.num_iterations));
+  }
+  // check that matrix is symmetric
+  constexpr double epsilon = 0.000000001;
+  for (int i = 0; i < Model.n; ++i) {
+    for (int j = 0; j < Model.n; ++j) {
+      if ((Model.matrix_weight(i, j) + epsilon < Model.matrix_weight(j, i)) ||
+          (Model.matrix_weight(i, j) - epsilon > Model.matrix_weight(j, i))) {
+        throw_error("QUBO Matrix is not symmetric");
+      }
+    }
   }
 }
 
@@ -67,21 +90,21 @@ int main(const int argc, const char *argv[]) {
    *   Preform simulated anneal.
    *
    *   Command line args:
-   *   	pipe in # of variables in model
    *   	pipe in desired # of restarts
    *   	pipe in desired # of iterations per restart
-   *
-   *   	pipe in QUBO (nxn)-matrix
    *   	pipe in (1xn)-vector beta schedule
+   *
+   *   	pipe in # of variables in model
+   *   	pipe in QUBO (nxn)-matrix
    */
-  Random Rng; // Random number generator
+  Random Rng;              // Random number generator
+  SolverData Solver;       // SolverData parameters
+  DenseQubo Model;         // Dense QUBO model
+  State MinState(Model.n); // Solution state where energy is set to inf
+  check_solver_and_qubo(Solver, Model);
 
-  Dense_qubo model = read_qubo_model();
-  Solution_state best_sol(model.n);
-  best_sol.E = std::numeric_limits<double>::infinity();
-
-  for (int i = 0; i < model.num_restarts; ++i) {
-    sim_anneal(model, Rng, best_sol);
+  for (int i = 0; i < Solver.num_restarts; ++i) {
+    sim_anneal(Rng, Solver, Model, MinState);
   }
-  print_solution(best_sol);
+  MinState.print_state();
 }

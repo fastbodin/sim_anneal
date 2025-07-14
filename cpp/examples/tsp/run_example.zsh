@@ -1,1 +1,1 @@
-./../../sim_anneal/build/sim_anneal < ../../../problems/tsp/problem_instance/run_data < ../../../problems/tsp/problem_instance/QUBO_matrix < ../../../problems/tsp/problem_instance/beta_schedule
+./../../sim_anneal/build/sim_anneal < ../../../problems/tsp/problem_instance/solver_data < ../../../problems/tsp/problem_instance/beta_schedule < ../../../problems/tsp/problem_instance/num_vars < ../../../problems/tsp/problem_instance/QUBO_matrix
