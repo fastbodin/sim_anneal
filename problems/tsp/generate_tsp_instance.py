@@ -26,9 +26,8 @@ def main():
     np.random.seed(seed=21)  # seed random number generator
 
     n = 12  # number of cities
-    num_res = 1000  # number of restarts
+    num_res = 10000  # number of restarts
     num_iters = 10000  # number of iterations
-    run_data = np.array([n * n, num_res, num_iters])
 
     # coordinates of cities, distances between cities, and QUBO matrix
     x_cor, y_cor = np.random.rand(n), np.random.rand(n)
@@ -53,7 +52,18 @@ def main():
     plt.close()
 
     # save all relevant data for future use
-    np.savetxt("problem_instance/run_data", run_data, delimiter=" ", fmt="%d")
+    np.savetxt(
+        "problem_instance/solver_data",
+        np.array([num_res, num_iters]),
+        delimiter=" ",
+        fmt="%d",
+    )
+    np.savetxt(
+        "problem_instance/num_vars",
+        np.array([n * n]),
+        delimiter=" ",
+        fmt="%d",
+    )
     np.savetxt("problem_instance/x_cor", x_cor, delimiter=" ")
     np.savetxt("problem_instance/y_cor", y_cor, delimiter=" ")
     np.savetxt("problem_instance/distances", dists, delimiter=" ")
