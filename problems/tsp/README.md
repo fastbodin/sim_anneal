@@ -58,13 +58,14 @@ be used to generate a random TSP instance. The directory `problem_instance/`
 contains a random TSP instance on 12 cities with the following files.
 
 ```
-1. run_data <- {# of variables in model} {# of restarts} {# of iterations}.
-2. distances <- distance between cities in matrix form.
-3. x_cor, y_cor <- horizontal and vertical coordinates of cities.
-4. beta_schedule <- beta value per iteration.
-5. beta_and_temperature.png <- visual of beta and temperature schedule.
-6. QUBO_matrix <- matrix obtained from generate_tsp_matrix given TSP instance.
-7. tsp_instance.png <- visual of cities embedded on a plane.
+1. solver_data <- {# of restarts} {# of iterations}.
+2. num_vars <- {# of variables in model}.
+3. distances <- distance between cities in matrix form.
+4. x_cor, y_cor <- horizontal and vertical coordinates of cities.
+5. beta_schedule <- beta value per iteration.
+6. beta_and_temperature.png <- visual of beta and temperature schedule.
+7. QUBO_matrix <- matrix obtained from generate_tsp_matrix given TSP instance.
+8. tsp_instance.png <- visual of cities embedded on a plane.
 ```
 A visual of the cities in `problem_instance/` is shown below.
 
@@ -82,5 +83,11 @@ can be used to generate the following visuals of these solutions.
 <img src="solutions/tsp_sol_cpp.png"
 width="400">
 <img src="solutions/tsp_sol_python.png"
+width="400">
+</p>
+
+An optimal solution, found via an ILP (see `ilp/`), is shown below.
+<p align="center">
+<img src="solutions/tsp_sol_ilp.png"
 width="400">
 </p>
