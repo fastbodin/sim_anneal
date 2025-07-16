@@ -3,12 +3,13 @@ from numpy.typing import NDArray
 from numba import njit
 
 
-@njit
+@njit(cache=True)
 def consider_neighbor_states(
     Q: NDArray[np.float64],
     n: int,
     x: NDArray[np.bool_],
     xE: float,
+    mask: NDArray[np.bool_],
     dE: NDArray[np.float64],
     beta: float,
 ) -> float:
@@ -21,6 +22,7 @@ def consider_neighbor_states(
         n: number of variables
         x: state vector
         xE: energy of current state
+        mask: all 1s vector with same dimensions as x
         dE: delta energies of neighboring states
         beta: 1/temperature for iteration
 
@@ -30,31 +32,33 @@ def consider_neighbor_states(
 
     for i in range(n):
         # Accept or decline candidate state by the Metropolis-Hasting rule.
-        if (dE[i] <= 0) or (np.random.random() < np.exp(-dE[i] * beta)):
-            x[i] = x[i] ^ True  # flip of spin of node
-            xE += dE[i]
-            term_sign = 2 * x[i] - 1
+        if (dE[i] > 0) and (np.random.random() >= np.exp(-dE[i] * beta)):
+            continue  # decline
+        x[i] = x[i] ^ True  # flip of spin of node
+        xE += dE[i]  # update state energy
 
-            for j in range(n):  # update delta energies
-                if j != i:
-                    # Given jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j]
-                    # computed prior to flipping the spin of node i, it
-                    # suffices to add the change to the term x[i] * x[j]
-                    dE[j] += term_sign * (2 - 4 * x[j]) * Q[i, j]
-            dE[i] *= -1  # re-flipping spin of node i simply flips sign
+        dE[i] *= -1  # re-flipping spin of node i simply flips sign
+        mask[i] = False
+        # Given jth delta energy: 2(1-2x[j])Q[j]x^T + Q[j,j]
+        # computed prior to flipping the spin of node i, it
+        # suffices to add the change to the term x[i] * x[j]
+        dE[mask] += (2 - 4 * x[mask]) * Q[i, mask] * (2 * x[i] - 1)
+        mask[i] = True
     return xE
 
 
-def delta_energy(Q: NDArray[np.float64], x: NDArray[np.bool_], i: int) -> float:
+def delta_energies(
+    Q: NDArray[np.float64], x: NDArray[np.bool_], mask: NDArray[np.bool_]
+) -> NDArray[np.float64]:
     """
-    Compute the delta energy if the ith bit of x is flipped. Given symmetric
-    matrix Q and boolean vectors x and e such that x + e = (x with ith bit
-    flipped), the delta energy is given by:
+    For each node i of x, compute the delta energy if the spin of i is flipped.
+    Given symmetric matrix Q and boolean vectors x and e such that x + e = (x
+    with ith node flipped), the delta energy is given by:
 
     (x+e)Q(x+e)^T - xQx^t = 2eQx^T + eQe^T = 2(1-2x[i])Q[i]x^T + Q[i,i]
     """
 
-    return (2 - 4 * x[i]) * np.matmul(x, Q[i]) + Q[i, i]
+    return (2 - 4 * x[mask]) * np.matmul(x, Q[mask]) + np.diag(Q)
 
 
 def sim_anneal(
@@ -77,13 +81,13 @@ def sim_anneal(
         xE: associated energy
     """
 
-    x = np.random.randint(2, size=n, dtype=np.bool_)
+    x = np.random.randint(2, size=n, dtype=np.bool_)  # state
     xE = np.matmul(np.matmul(x, Q), x)  # energy of state x: xQx^T
-    # delta energies of neighboring states
-    dE = np.array([delta_energy(Q, x, i) for i in range(n)], dtype=np.float64)
+    mask = np.ones_like(x, dtype=np.bool_)  # for updating delta energies
+    dE = delta_energies(Q, x, mask)
 
     for i in range(num_iterations):
-        xE = consider_neighbor_states(Q, n, x, xE, dE, beta_sched[i])
+        xE = consider_neighbor_states(Q, n, x, xE, mask, dE, beta_sched[i])
 
     return x, xE
 
